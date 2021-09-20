@@ -1,0 +1,6 @@
+models/*
+crap/*
+data/*
+*.rds
+*.csv
+!placeholder
