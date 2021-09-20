@@ -78,30 +78,25 @@ if(file.exists("data/spacePoly.rds")) {
   #dev.off()
 }
 
+# Make the mesh and convince yourself it's good enough (or save the mesh you did before!)
+if(file.exists("data/mesh.rds")) {
+  mesh <- readRDS("data/mesh.rds")
+} else {
+  pedge <- 0.02
+  edge <- min(c(diff(raster::bbox(q)[1,])*pedge,diff(raster::bbox(q)[2,])*pedge))
+  mesh <- INLA::inla.mesh.2d(boundary = q, 
+                              max.edge = c(edge, edge*5), 
+                              min.angle = 21,
+                              offset = c(edge, edge*2), 
+                              cutoff = edge/2, 
+                              crs = obs@proj4string)
+}
+
 # Import raster template (will be used as a "predictors" with 1 everywhere)
 ext <- raster::extent(q)
 rast <- raster::raster(crs = obs@proj4string, ext = ext, resolution = 0.05, vals = 1)
 rast <- raster::mask(rast, q)
 names(rast) <- "none"
-
-pedge<-0.02
-edge<-min(c(diff(raster::bbox(q)[1,])*pedge,diff(raster::bbox(q)[2,])*pedge))
-edge
-
-# Make the mesh and convince yourself it's good enough
-mesh <- INLA::inla.mesh.2d(boundary = q, 
-                            max.edge = c(edge, edge*5), 
-                            min.angle = 21,
-                            offset = c(edge,edge*2), 
-                            cutoff = edge/2, 
-                            crs = obs@proj4string)
-
-## Visualize the shit you just made
-#pdf("mesh2.pdf")
-#par(mfrow = c(2,1))
-#plot(mesh, main = "", asp = 1)
-#plot(mesh2, main = "", asp = 1)
-#dev.off()
 
 
 #######################
