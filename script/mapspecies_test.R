@@ -15,7 +15,7 @@ con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), 
 sciname = "Falco peregrinus"
 id <- RPostgres::dbGetQuery(con, paste0("SELECT id FROM taxa WHERE scientific_name = '",sciname,"';"))
 obs <- RPostgres::dbGetQuery(con, paste0("SELECT * FROM api.get_bird_presence_absence(",id,");"))
-
+RPostgres::dbDisconnect(con)
 
 # Filter data
 years <- c(1990, 2020)
@@ -93,37 +93,29 @@ if(file.exists("data/mesh.rds")) {
 }
 
 # Import raster template (will be used as a "predictors" with 1 everywhere)
-ext <- raster::extent(q)
-rast <- raster::raster(crs = obs@proj4string, ext = ext, resolution = 0.05, vals = 1)
-rast <- raster::mask(rast, q)
-names(rast) <- "none"
-
-
-#######################
-# Testing mesh
-#mesh1 <- INLA::inla.mesh.2d(boundary = q, max.edge = c(1.5, 6), offset = c(0.05, 0.5), cutoff = 0.05, crs = obs@proj4string)
-#mesh2 <- INLA::inla.mesh.2d(boundary = q, max.edge = c(1.5, 6), offset = c(0.05, 0.5), cutoff = 0.5, crs = obs@proj4string)
-#mesh3 <- INLA::inla.mesh.2d(boundary = q, max.edge = c(1.5, 6), offset = c(0.05, 0.5), cutoff = 1.5, crs = obs@proj4string)
-#mesh4 <- INLA::inla.mesh.2d(boundary = q, max.edge = c(1.5, 6), offset = c(0.05, 0.5), cutoff = 5, crs = obs@proj4string)
-#
-#pdf("mesh_test.pdf")
-#par(mfrow = c(2,2))
-#plot(mesh1, main = "1", asp = 1)
-#plot(mesh2, main = "2", asp = 1)
-#plot(mesh3, main = "3", asp = 1)
-#plot(mesh4, main = "4", asp = 1)
-#dev.off()
-#######################
+if(file.exists("data/rast.rds")) {
+  rast <- readRDS("data/rast.rds")
+} else {
+  ext <- raster::extent(q)
+  rast <- raster::raster(crs = obs@proj4string, ext = ext, resolution = 0.05, vals = 1)
+  rast <- raster::mask(rast, q)
+  names(rast) <- "none"
+}
 
 
 # Make the explanaMesh and pretend you know what's going on
-explana <- mapSpecies::explanaMesh(sPoly = q,
-                                   meshSpace = mesh,
-                                   meshTime = NULL,
-                                   X = rast)
+if(file.exists("data/explana.rds")) {
+  explana <- readRDS("data/explana.rds")
+} else {
+  explana <- mapSpecies::explanaMesh(sPoly = q,
+                                     meshSpace = mesh,
+                                     meshTime = NULL,
+                                     X = rast)
+}
 
-# Aggregate observations
-years <- c(1990:1994)
+
+# Creates folders for every output
+years <- c(1990:1994) # TODO: set the width of the temporal window as an argument / Set the years outside the loop
 folder_name <- tolower(gsub(" ", "_", sciname))
 folder <- paste0("models/", folder_name)
 dir.create(folder)
@@ -133,6 +125,7 @@ dir.create(paste0(folder,"/mod"))
 dir.create(paste0(folder,"/qc"))
 
 
+# Make models
 for(i in 0:(2020-years[length(years)])) {
 
   obs_aggr <- raster::rasterize(obs[obs$year_obs %in% (years+i),], rast, field = "occurrence", fun = "max")
@@ -155,7 +148,7 @@ for(i in 0:(2020-years[length(years)])) {
                               link = "logit", 
                               control.compute = list(waic = TRUE),
                               verbose = TRUE,
-                              num.threads = 30)
+                              num.threads = 20)
   saveRDS(mod, paste0(folder, "/mod/mod_",mean((years+i)),".rds"))
 
   # Make map and cry
@@ -176,26 +169,17 @@ for(i in 0:(2020-years[length(years)])) {
                      sPoly = qc)
   map_sd <- raster::mask(map_sd, qc)
 
+  map_025 <- mapSpace(mod,
+                      dims = dim(rast)[2:1],
+                      type = "0.025quant",
+                      sPoly = qc)
+  map_025 <- raster::mask(map_025, qc)
 
-  ## Set crs to raster
-  raster::crs(map) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-  raster::crs(map_sd) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-
-  ## Save maps
-  map_stack <- raster::stack(map, map_sd)
-  raster::writeRaster(map_stack, file.path(folder, "/map/", paste0("map_",mean((years+i)), ".grd")))
-
-  ## Plot the map
-  pdf(paste0(folder, "/qc/map",mean((years+i)),".pdf"), width = 12)
-  par(mfrow = c(1,2), oma = c(0,0,0,2))
-  raster::plot(map, zlim = c(0, 1),
-               axes = FALSE, box = FALSE, main = "Mean")
-  sp::plot(qc, lwd=0.2, add = TRUE)
-  raster::plot(map_sd, zlim = c(0, 0.5),
-               axes = FALSE, box = FALSE, main = "SD")
-  sp::plot(qc, lwd=0.2, add = TRUE)
-  dev.off()
-
+  map_975 <- mapSpace(mod,
+                      dims = dim(rast)[2:1],
+                      type = "0.975quant",
+                      sPoly = qc)
+  map_975 <- raster::mask(map_975, qc)
 
   ## Map the model on the entire zone
   map_all <- mapSpace(mod,
@@ -205,9 +189,73 @@ for(i in 0:(2020-years[length(years)])) {
   map_all <- raster::mask(map_all, q)
 
   ## Set crs to raster
+  raster::crs(map) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  raster::crs(map_sd) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  raster::crs(map_025) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  raster::crs(map_975) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
   raster::crs(map_all) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 
+  ## Set names of rasters
+  names(map) <- paste0("mean_", mean((years+i)))
+  names(map_sd) <- paste0("sd_", mean((years+i)))
+  names(map_025) <- paste0("ci025_", mean((years+i)))
+  names(map_975) <- paste0("ci975_", mean((years+i)))
+  names(map_all) <- paste0("mean_all_", mean((years+i)))
+
+  ## Save maps from QC
+  if(exists("map_stack")){
+    map_stack <- raster::stack(map_stack, map, map_sd, map_025, map_975)
+  } else {
+    map_stack <- raster::stack(map, map_sd, map_025, map_975)
+  }
+
+  ## Save maps for entire zone
+  if(exists("map_all_stack")){
+    map_all_stack <- raster::stack(map_all_stack, map_all)
+  } else {
+    map_all_stack <- raster::stack(map_all)
+  }
+
+}
+
+
+# Save rasterStack map_stack and map_all_stack
+raster::writeRaster(map_stack, file.path(folder, "/map/maps"))
+raster::writeRaster(map_all_stack, file.path(folder, "/map/maps_all"))
+
+
+# Plot the maps
+for(i in 0:(2020-years[length(years)])) {
+  
+  map <- map_stack[[paste0("mean_", mean((years+i)))]]
+  map_sd <- map_stack[[paste0("sd_", mean((years+i)))]]
+  map_025 <- map_stack[[paste0("ci025_", mean((years+i)))]]
+  map_975 <- map_stack[[paste0("ci975_", mean((years+i)))]]
+  map_all <- map_all_stack[[paste0("mean_all_", mean((years+i)))]]
+
   ## Plot the map
+  pdf(paste0(folder, "/qc/map",mean((years+i)),".pdf"), width = 12)
+  par(mfrow = c(1,2), oma = c(0,0,0,2))
+  raster::plot(map, zlim = c(0, 1),
+               axes = FALSE, box = FALSE, main = "Mean")
+  sp::plot(qc, lwd=0.2, add = TRUE)
+  raster::plot(map_sd, zlim = c(0, max(map_stack[[paste0("sd_", 1992:2018)]])),
+               axes = FALSE, box = FALSE, main = "SD")
+  sp::plot(qc, lwd=0.2, add = TRUE)
+  dev.off()
+
+  ## Plot the ci map
+  pdf(paste0(folder, "/qc/ci_map",mean((years+i)),".pdf"), width = 12)
+  par(mfrow = c(1,2), oma = c(0,0,0,2))
+  raster::plot(map_025, zlim = c(0, 1),
+               axes = FALSE, box = FALSE, main = "CI 0.025")
+  sp::plot(qc, lwd=0.2, add = TRUE)
+  raster::plot(map_975, zlim = c(0, 1),
+               axes = FALSE, box = FALSE, main = "CI 0.975")
+  sp::plot(qc, lwd=0.2, add = TRUE)
+  dev.off()
+
+  ## Plot the map for entire zone
   pdf(paste0(folder, "/all/map",mean((years+i)),".pdf"))
   raster::plot(map_all, zlim = c(0, 1),
                axes = FALSE, box = FALSE, main = "Mean")
@@ -215,14 +263,17 @@ for(i in 0:(2020-years[length(years)])) {
   sp::plot(obs_aggr[obs_aggr$occurrence == 1,], add = TRUE, pch = 1, col = "blue", cex = 0.1)
   dev.off()
 }
+  
 
-
-# Make a GIF for the QC map
-imgs <- list.files(paste0(folder, "/qc"), full.names = TRUE)
+# Make a GIF for the QC map (both mean and CI)
+imgs <- list.files(paste0(folder, "/qc"), pattern = "^map", full.names = TRUE)
 img_list <- lapply(imgs, magick::image_read_pdf, density = 500)
-
 img_joined <- magick::image_join(img_list)
-
 img_animated <- magick::image_animate(img_joined, fps = 5)
-
 magick::image_write(img_animated, path = paste0(folder,"/map.gif"))
+
+imgs <- list.files(paste0(folder, "/qc"), pattern = "ci_map", full.names = TRUE)
+img_list <- lapply(imgs, magick::image_read_pdf, density = 500)
+img_joined <- magick::image_join(img_list)
+img_animated <- magick::image_animate(img_joined, fps = 5)
+magick::image_write(img_animated, path = paste0(folder,"/ci_map.gif"))
