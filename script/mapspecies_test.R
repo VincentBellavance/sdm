@@ -7,19 +7,23 @@ library(mapSpecies)
 library(RPostgres)
 library(ratlas)
 
+# Connection to DB
 con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
 
+# Species
+sciname = "Cardellina canadensis"
 
 # Import data
-## Get id of Antigone Canadensis
-sciname = "Falco peregrinus"
+## Get id of species
 id <- RPostgres::dbGetQuery(con, paste0("SELECT id FROM taxa WHERE scientific_name = '",sciname,"';"))
 obs <- RPostgres::dbGetQuery(con, paste0("SELECT * FROM api.get_bird_presence_absence(",id,");"))
 RPostgres::dbDisconnect(con)
 
+sciname = "Cardellina canadensis_test_month"
+
 # Filter data
 years <- c(1990, 2020)
-months <- c(5, 8)
+months <- c(6,7,8,9)
 hours <- c(hms::as_hms("05:00:00"), hms::as_hms("09:00:00"))
 obs <- obs[!is.na(obs$month_obs) & !is.na(obs$time_obs), ]
 obs <- obs[obs$year_obs >= years[1] & obs$year_obs <= years[2], ]
@@ -123,6 +127,7 @@ dir.create(paste0(folder,"/all"))
 dir.create(paste0(folder,"/map"))
 dir.create(paste0(folder,"/mod"))
 dir.create(paste0(folder,"/qc"))
+dir.create(paste0(folder,"/auc"))
 
 
 # Make models
@@ -148,7 +153,8 @@ for(i in 0:(2020-years[length(years)])) {
                               link = "logit", 
                               control.compute = list(waic = TRUE),
                               verbose = TRUE,
-                              num.threads = 20)
+                              num.threads = 30,
+                              control.inla=list(int.strategy="ccd")) # with ccd, seems less costly in RAM...
   saveRDS(mod, paste0(folder, "/mod/mod_",mean((years+i)),".rds"))
 
   # Make map and cry
@@ -202,6 +208,18 @@ for(i in 0:(2020-years[length(years)])) {
   names(map_975) <- paste0("ci975_", mean((years+i)))
   names(map_all) <- paste0("mean_all_", mean((years+i)))
 
+  ## Compute AUC with map_all and observation used to make the model
+  ### Vector of threshold to get 1/0 from model prediction 
+  threshold <- seq(0.05, 0.95, by = 0.05)
+  df <- as.data.frame(attributes(mod)$sPoints)
+  df[,"pred"] <- raster::extract(map_all, df[,c("x", "y")])
+  auc <- data.frame(threshold = threshold, auc = NA)
+  for(i in 1:length(threshold)) {
+    pred_tmp <- ifelse(df$pred >= threshold[i], 1, 0)
+    auc[i, "auc"] <- pROC::auc(pROC::roc(df$occurrence, pred_tmp))
+  }
+  saveRDS(auc, file.path(folder, paste0("auc/auc_",mean((years+i)),".rds")))
+  
   ## Save maps from QC
   if(exists("map_stack")){
     map_stack <- raster::stack(map_stack, map, map_sd, map_025, map_975)
@@ -227,6 +245,11 @@ raster::writeRaster(map_all_stack, file.path(folder, "/map/maps_all"))
 # Plot the maps
 for(i in 0:(2020-years[length(years)])) {
   
+  obs_aggr <- raster::rasterize(obs[obs$year_obs %in% (years+i),], rast, field = "occurrence", fun = "max")
+  obs_aggr <- raster::rasterToPoints(obs_aggr)
+  obs_aggr <- sp::SpatialPointsDataFrame(obs_aggr[,1:2], as.data.frame(obs_aggr[,3]), proj4string = obs@proj4string)
+  names(obs_aggr) <- "occurrence"
+
   map <- map_stack[[paste0("mean_", mean((years+i)))]]
   map_sd <- map_stack[[paste0("sd_", mean((years+i)))]]
   map_025 <- map_stack[[paste0("ci025_", mean((years+i)))]]
@@ -239,7 +262,7 @@ for(i in 0:(2020-years[length(years)])) {
   raster::plot(map, zlim = c(0, 1),
                axes = FALSE, box = FALSE, main = "Mean")
   sp::plot(qc, lwd=0.2, add = TRUE)
-  raster::plot(map_sd, zlim = c(0, max(map_stack[[paste0("sd_", 1992:2018)]])),
+  raster::plot(map_sd, zlim = c(0, ceiling(max(map_stack[[paste0("sd_", 1992:2018)]][,,], na.rm = TRUE)*100)/100),
                axes = FALSE, box = FALSE, main = "SD")
   sp::plot(qc, lwd=0.2, add = TRUE)
   dev.off()
