@@ -7,25 +7,19 @@ library(mapSpecies)
 library(RPostgres)
 library(ratlas)
 
-# Connection to DB
-con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
-
 # Species
-sciname = "Antigone canadensis"
+species = "Antigone canadensis"
+year_start = 1990
+year_end = 2020
+window_width = 5
+buffer = 30
 
-# Import data
-## Get id of species
-id <- RPostgres::dbGetQuery(con, paste0("SELECT id FROM taxa WHERE scientific_name = '",sciname,"';"))
-obs <- RPostgres::dbGetQuery(con, paste0("SELECT * FROM api.get_bird_presence_absence(",id,");"))
-RPostgres::dbDisconnect(con)
-# Filter data
-years <- c(1990, 2020)
-months <- c(5:9)
-#hours <- c(hms::as_hms("05:00:00"), hms::as_hms("09:00:00"))
-obs <- obs[!is.na(obs$month_obs) & !is.na(obs$time_obs), ]
-obs <- obs[obs$year_obs >= years[1] & obs$year_obs <= years[2], ]
-obs <- obs[obs$month_obs >= months[1] & obs$month_obs <= months[2], ]
-#obs <- obs[obs$time_obs >= hours[1] & obs$time_obs <= hours[2], ]
+# Get observations
+obs <- get_obs(species)
+
+# Filter data with dates of observations
+obs <- obs[obs$year_obs >= year_start & obs$year_obs <= year_end, ]
+obs <- filter_dates(obs, species, buffer)
 obs$occurrence <- ifelse(obs$occurrence == FALSE, 0, 1)
 
 # Deal with geom (extract lon and lat from geom character string)
@@ -116,7 +110,7 @@ if(file.exists("data/explana.rds")) {
 
 
 # Creates folders for every output
-years <- c(1990:1994) # TODO: set the width of the temporal window as an argument / Set the years outside the loop
+years <- c(1990:1994) # TODO: set the width of the temporal window as an argument / Set the years outside the loop begin = , end = , width = .
 folder_name <- tolower(gsub(" ", "_", sciname))
 folder <- paste0("models/", folder_name)
 dir.create(folder)
@@ -241,11 +235,6 @@ raster::writeRaster(map_all_stack, file.path(folder, "/map/maps_all"))
 
 # Plot the maps
 for(i in 0:(2020-years[length(years)])) {
-  
-  obs_aggr <- raster::rasterize(obs[obs$year_obs %in% (years+i),], rast, field = "occurrence", fun = "max")
-  obs_aggr <- raster::rasterToPoints(obs_aggr)
-  obs_aggr <- sp::SpatialPointsDataFrame(obs_aggr[,1:2], as.data.frame(obs_aggr[,3]), proj4string = obs@proj4string)
-  names(obs_aggr) <- "occurrence"
 
   map <- map_stack[[paste0("mean_", mean((years+i)))]]
   map_sd <- map_stack[[paste0("sd_", mean((years+i)))]]
@@ -280,7 +269,6 @@ for(i in 0:(2020-years[length(years)])) {
   raster::plot(map_all, zlim = c(0, 1),
                axes = FALSE, box = FALSE, main = "Mean")
   sp::plot(q, lwd = 0.2, add = TRUE)
-  sp::plot(obs_aggr[obs_aggr$occurrence == 1,], add = TRUE, pch = 1, col = "blue", cex = 0.1)
   dev.off()
 }
   
