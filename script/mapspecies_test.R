@@ -11,24 +11,21 @@ library(ratlas)
 con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
 
 # Species
-sciname = "Cardellina canadensis"
+sciname = "Antigone canadensis"
 
 # Import data
 ## Get id of species
 id <- RPostgres::dbGetQuery(con, paste0("SELECT id FROM taxa WHERE scientific_name = '",sciname,"';"))
 obs <- RPostgres::dbGetQuery(con, paste0("SELECT * FROM api.get_bird_presence_absence(",id,");"))
 RPostgres::dbDisconnect(con)
-
-sciname = "Cardellina canadensis_test_month"
-
 # Filter data
 years <- c(1990, 2020)
-months <- c(6,7,8,9)
-hours <- c(hms::as_hms("05:00:00"), hms::as_hms("09:00:00"))
+months <- c(5:9)
+#hours <- c(hms::as_hms("05:00:00"), hms::as_hms("09:00:00"))
 obs <- obs[!is.na(obs$month_obs) & !is.na(obs$time_obs), ]
 obs <- obs[obs$year_obs >= years[1] & obs$year_obs <= years[2], ]
 obs <- obs[obs$month_obs >= months[1] & obs$month_obs <= months[2], ]
-obs <- obs[obs$time_obs >= hours[1] & obs$time_obs <= hours[2], ]
+#obs <- obs[obs$time_obs >= hours[1] & obs$time_obs <= hours[2], ]
 obs$occurrence <- ifelse(obs$occurrence == FALSE, 0, 1)
 
 # Deal with geom (extract lon and lat from geom character string)
@@ -214,9 +211,9 @@ for(i in 0:(2020-years[length(years)])) {
   df <- as.data.frame(attributes(mod)$sPoints)
   df[,"pred"] <- raster::extract(map_all, df[,c("x", "y")])
   auc <- data.frame(threshold = threshold, auc = NA)
-  for(i in 1:length(threshold)) {
-    pred_tmp <- ifelse(df$pred >= threshold[i], 1, 0)
-    auc[i, "auc"] <- pROC::auc(pROC::roc(df$occurrence, pred_tmp))
+  for(j in 1:length(threshold)) {
+    pred_tmp <- ifelse(df$pred >= threshold[j], 1, 0)
+    auc[j, "auc"] <- pROC::auc(pROC::roc(df$occurrence, pred_tmp))
   }
   saveRDS(auc, file.path(folder, paste0("auc/auc_",mean((years+i)),".rds")))
   
