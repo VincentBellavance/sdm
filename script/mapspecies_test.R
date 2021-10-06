@@ -7,12 +7,14 @@ library(mapSpecies)
 library(RPostgres)
 library(ratlas)
 
-# Species
+# Arguments of the function
 species = "Antigone canadensis"
 year_start = 1990
 year_end = 2020
 window_width = 5
 buffer = 30
+proj <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+
 
 # Get observations
 obs <- get_obs(species)
@@ -22,31 +24,17 @@ obs <- obs[obs$year_obs >= year_start & obs$year_obs <= year_end, ]
 obs <- filter_dates(obs, species, buffer)
 obs$occurrence <- ifelse(obs$occurrence == FALSE, 0, 1)
 
+
 # Deal with geom (extract lon and lat from geom character string)
-## Split lon and lat from the rest of the character
-re <- "\\(([^()]+)\\)"
-geom <- strsplit(
-  gsub(re, "\\1", stringr::str_extract_all(obs$geom, re)),
-  "\\s+"
-)
-
-## Bind the lon and lat to create the df
-geom <- do.call(rbind,
-  lapply(geom, function(x) {
-    cbind(as.numeric(x[1]), as.numeric(x[2]))
-  })
-)
-geom <- as.data.frame(geom)
-colnames(geom) <- c("lon", "lat")
-
-## Bind geom and obs together
-obs <- cbind(geom, obs)
+## Extract coordinates from geom column
+coords <- extract_coords(obs$geom)
+## Bind coords and obs together
+obs <- cbind(coords, obs)
+## Remove geom column
 obs <- obs[,-which(colnames(obs) == "geom")]
 
-
 # Make spatialPointsDataFrame for the observations
-proj <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-obs <- sp::SpatialPointsDataFrame(geom, obs[,-c(1:2)], proj4string = sp::CRS(proj))
+obs <- sp::SpatialPointsDataFrame(coords, obs[,-c(1:2)], proj4string = sp::CRS(proj))
 
 
 # Make spatialPolygons
@@ -67,10 +55,6 @@ if(file.exists("data/spacePoly.rds")) {
   ### Bind US and Canada together
   q <- rbind(q1, q2) # This is the region of interest we want to model
   q <- raster::aggregate(q, dissolve = T)
-  #pdf("test.pdf")
-  #sp::plot(q)
-  #sp::plot(obs, add = TRUE, pch = 1, col = "red", cex = 0.5)
-  #dev.off()
 }
 
 # Make the mesh and convince yourself it's good enough (or save the mesh you did before!)
@@ -97,7 +81,6 @@ if(file.exists("data/rast.rds")) {
   names(rast) <- "none"
 }
 
-
 # Make the explanaMesh and pretend you know what's going on
 if(file.exists("data/explana.rds")) {
   explana <- readRDS("data/explana.rds")
@@ -110,8 +93,9 @@ if(file.exists("data/explana.rds")) {
 
 
 # Creates folders for every output
-years <- c(1990:1994) # TODO: set the width of the temporal window as an argument / Set the years outside the loop begin = , end = , width = .
-folder_name <- tolower(gsub(" ", "_", sciname))
+#TODO: Maybe make a single object as a list?
+years <- c(year_start, year_start+width-1)
+folder_name <- tolower(gsub(" ", "_", species))
 folder <- paste0("models/", folder_name)
 dir.create(folder)
 dir.create(paste0(folder,"/all"))
