@@ -108,18 +108,8 @@ dir.create(paste0(folder,"/auc"))
 # Make models
 for(i in 0:(2020-years[length(years)])) {
 
-  obs_aggr <- raster::rasterize(obs[obs$year_obs %in% (years+i),], rast, field = "occurrence", fun = "max")
-  obs_aggr <- raster::rasterToPoints(obs_aggr)
-  obs_aggr <- sp::SpatialPointsDataFrame(obs_aggr[,1:2], as.data.frame(obs_aggr[,3]), proj4string = obs@proj4string)
-  names(obs_aggr) <- "occurrence"
-
-  ### Test to make sure observation points are not the same as the centroid of the cells obtained in the obs_aggr
-  #pdf("test4.pdf")
-  #sp::plot(test[which(test@data == 1),])
-  #sp::plot(obs[obs$year_obs %in% (years+i) & obs$occurrence == 1,], pch = 1, col = "red", add = TRUE, cex = 0.5)
-  #dev.off()
-
-
+  obs_aggr <- aggregate_obs(obs, years, i, rast)
+  
   # Make model and pray that it makes sense
   mod <- mapSpecies::uniSpace(occurrence ~ none,
                               sPoints = obs_aggr,
