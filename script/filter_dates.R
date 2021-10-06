@@ -10,9 +10,10 @@ filter_dates <- function(obs, species, buffer) {
   mig_dates <- suppressMessages(time_interval(species, buffer))
   
   if(!is.null(mig_dates)) {
-    obs <- obs[!is.na(obs$month_obs), ]
-    tmp_md <- paste0(obs$month_obs, "-", obs$day_obs)
-    obs[,"tmp_md"] <- format(as.Date(tmp_md , format = "%m-%d") - buffer, "%m-%d")
+    obs <- obs[!is.na(obs$month_obs) & !is.na(obs$day_obs), ]
+    tmp_md <- paste0("2020-",obs$month_obs, "-", obs$day_obs)
+    obs[,"tmp_md"] <- format(as.Date(tmp_md , format = "%Y-%m-%d") - buffer, "%m-%d")
+    obs <- obs[!is.na(obs$tmp_md),]
     obs <- obs[obs$tmp_md >= mig_dates[1] & obs$tmp_md <= mig_dates[2], ]
     obs <- obs[,-grep("tmp_md", colnames(obs))]
   }
@@ -31,12 +32,16 @@ filter_dates <- function(obs, species, buffer) {
 
 time_interval <- function(species, buffer) {
 
-  species_info <- ebird_scraping(species)
+  if(species %in% rebird::ebirdtaxonomy("species")[,"sciName"]) {
+    species_info <- ebird_scraping(species)
 
-  if ("Breeding season" %in% species_info) {
-    return(get_migration_dates(species_info, buffer))
+    if ("Breeding season" %in% species_info) {
+      return(get_migration_dates(species_info, buffer))
+    } else {
+      return(NULL)
+    }
   } else {
-    return(NULL)
+    return(c("06-01", "09-01"))
   }
 
 }
