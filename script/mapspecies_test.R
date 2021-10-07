@@ -105,6 +105,3 @@ sdm_bdi <- function(species, year_start = 1990, year_end = 2020, window_width = 
 #             axes = FALSE, box = FALSE, main = "Mean")
 #sp::plot(q, lwd = 0.2, add = TRUE)
 #dev.off()
-
-
-}
