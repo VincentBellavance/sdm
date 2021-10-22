@@ -1,6 +1,7 @@
 models/*
 crap/*
 data/*
+/test/*
 *.rds
 *.csv
 !placeholder

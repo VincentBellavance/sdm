@@ -14,9 +14,10 @@ make_map <- function(type, mod, rast, sPoly, year, proj) {
                                 dims = dim(rast)[2:1],
                                 type = map_type,
                                 sPoly = sPoly)
-    map <- raster::mask(map, qc)
 
-    raster::crs(map) <- proj
+    raster::crs(map) <- raster::crs(sPoly)
+
+    map <- terra::mask(terra::rast(map), terra::vect(sPoly))
 
     names(map) <- paste0(type, "_", year)
 

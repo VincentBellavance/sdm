@@ -1,7 +1,7 @@
 # This script will serve as a test to make species distribution models for the Antigone Canadensis using mapSpecies package.
 # The goal here is to make a SDM using only space and time
 
-sdm_bdi <- function(species, year_start = 1990, year_end = 2020, window_width = 5, buffer = 30, proj = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0", threshold = seq(0.05, 0.95, by = 0.05)) {
+sdm_bdi <- function(species, year_start = 1990, year_end = 2020, window_width = 5, buffer = 30, proj = "+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0", threshold = seq(0.05, 0.95, by = 0.05)) {
 
   # Get observations
   obs <- get_obs(species)
@@ -21,11 +21,14 @@ sdm_bdi <- function(species, year_start = 1990, year_end = 2020, window_width = 
   obs <- obs[,-which(colnames(obs) == "geom")]
 
   # Make spatialPointsDataFrame for the observations
-  obs <- sp::SpatialPointsDataFrame(coords, obs[,-c(1:2)], proj4string = sp::CRS(proj))
-
+  obs <- sp::SpatialPointsDataFrame(coords, obs[,-c(1:2)], proj4string = sp::CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+  obs <- sp::spTransform(obs, sp::CRS(proj))
 
   # Make spatialPolygons to use it as boundary for the mesh
-  q <- prep_spat_poly()
+  q <- prep_spat_poly(proj)
+
+  # Make spatialPolygons of Qc province to make map
+  qc <- prep_qc_spat_poly(proj)
 
   # Make the mesh and convince yourself it's good enough (or save the mesh you did before!)
   mesh <- prep_mesh(q, obs)
@@ -37,8 +40,10 @@ sdm_bdi <- function(species, year_start = 1990, year_end = 2020, window_width = 
   explana <- prep_explana(q, mesh, rast)
 
   # Creates folders for every output
-  prep_folders(year_start, window_width, species)
+  folder <- prep_folders(year_start, window_width, species)
 
+  # First years
+  years <- year_start:(year_start+window_width-1)
 
   # Make models for every time windows
   for(i in 0:(year_end-years[length(years)])) {
@@ -56,12 +61,12 @@ sdm_bdi <- function(species, year_start = 1990, year_end = 2020, window_width = 
                                 control.compute = list(waic = TRUE),
                                 num.threads = 30,
                                 control.inla=list(int.strategy="eb")) # with ccd or eb, seems less costly in RAM...
-    saveRDS(mod, paste0(folder, "/mod/mod_",,".rds"))
+    saveRDS(mod, paste0(folder, "/mod/mod_",year,".rds"))
 
     
     ## Map the model to make compute the AUC
-    map <- make_map("mean", mod, rast, qc, year, proj)
-    calc_auc(mod, map, threshold, folder, year)
+    map <- make_map("mean_all", mod, rast, q, year, proj)
+    #calc_auc(mod, map, threshold, folder, year)
 
     ## Stack the map to save it at the end of the loop
     if(exists("map_stack")){

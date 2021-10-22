@@ -7,14 +7,14 @@
 #' 
 #' 
 
-prep_spat_poly <- function() {
+prep_spat_poly <- function(proj) {
 
   # Make spatialPolygons
   if(file.exists("data/spacePoly.rds")) {
     return(readRDS("data/spacePoly.rds"))
   } else {
     ## Visualize observations on the map
-    states <- c("CA.ON", "CA.MB", "CA.NB", "CA.NF", "CA.NS", "CA.NU", "CA.PE", "CA.QC", "US.VT", "US.ME", "US.NY", "US.NH", "US.MA", "US.RI", "US.CT", "US. PA", "US.NJ")
+    states <- c("CA.ON", "CA.MB", "CA.NB", "CA.NF", "CA.NS", "CA.NU", "CA.PE", "CA.QC", "US.VT", "US.ME", "US.NY", "US.NH", "US.MA", "US.RI", "US.CT", "US.PA", "US.NJ")
 
     ### Get states data
     q1<-raster::getData('GADM', country='CAN', level=1, download = TRUE) # Canada
@@ -27,6 +27,8 @@ prep_spat_poly <- function() {
     ### Bind US and Canada together
     q <- rbind(q1, q2) # This is the region of interest we want to model
     q <- raster::aggregate(q, dissolve = T)
+    q <- sp::spTransform(q, sp::CRS(proj))
+
     saveRDS(q, "data/spacePoly.rds")
     return(q)
   }
@@ -77,7 +79,7 @@ prep_rast_pred <- function(q, obs) {
     return(readRDS("data/rast.rds"))
   } else {
     ext <- raster::extent(q)
-    rast <- raster::raster(crs = obs@proj4string, ext = ext, resolution = 0.05, vals = 1)
+    rast <- raster::raster(crs = obs@proj4string, ext = ext, resolution = 1000, vals = 1)
     rast <- raster::mask(rast, q)
     names(rast) <- "none"
     saveRDS(rast, "data/rast.rds")
@@ -104,7 +106,7 @@ prep_explana <- function(q, mesh, rast) {
                                        meshSpace = mesh,
                                        meshTime = NULL,
                                        X = rast)
-    saveRDS("data/explana.rds")
+    saveRDS(explana, "data/explana.rds")
     return(explana)
   }
 }
@@ -131,6 +133,8 @@ prep_folders <- function(year_start, window_width, species) {
   dir.create(paste0(folder,"/qc"))
   dir.create(paste0(folder,"/auc"))
 
+  return(folder)
+
 }
 
 
@@ -143,15 +147,18 @@ prep_folders <- function(year_start, window_width, species) {
 #' 
 #' 
 
-prep_qc_spat_poly <- function() {
+prep_qc_spat_poly <- function(proj) {
 
   # Make spatialPolygons
   if(file.exists("data/qc_spacePoly.rds")) {
     return(readRDS("data/qc_spacePoly.rds"))
   } else {
     qc <- raster::getData('GADM', country='CAN', level=1, download = TRUE) # Canada
-    qc <- qc[qc$NAME_1 == "Québec",] # Save it to not make it everytime
-    saveRDS("data/qc_spacePoly.rds")
+    qc <- qc[qc$NAME_1 == "Québec",] 
+    qc <- sp::spTransform(qc, sp::CRS(proj))
+
+    # Save it to not make it everytime
+    saveRDS(qc, "data/qc_spacePoly.rds")
     return(qc)
   }
 }
