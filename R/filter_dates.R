@@ -8,7 +8,7 @@
 filter_dates <- function(obs, species, buffer) {
 
   mig_dates <- suppressMessages(time_interval(species, buffer))
-  
+  cat("time interval done\n")
   if(!is.null(mig_dates)) {
     obs <- obs[!is.na(obs$month_obs) & !is.na(obs$day_obs), ]
     tmp_md <- paste0("2020-",obs$month_obs, "-", obs$day_obs)
@@ -32,18 +32,37 @@ filter_dates <- function(obs, species, buffer) {
 
 time_interval <- function(species, buffer) {
 
-  if(species %in% rebird::ebirdtaxonomy("species")[,"sciName"]) {
-    species_info <- ebird_scraping(species)
+  ebird_taxa <- c(rebird::ebirdtaxonomy("species")[,"sciName"])[[1]]
+  cat("ebird taxa done\n")
+  if(species$accepted %in% ebird_taxa) {
+  
+    species_info <- ebird_scraping(species$accepted)
 
     if ("Breeding season" %in% species_info) {
       return(get_migration_dates(species_info, buffer))
     } else {
       return(NULL)
     }
+  
   } else {
-    return(c("06-01", "09-01"))
-  }
 
+    syn_in_ebird <- species$synonym %in% ebird_taxa
+    
+    if(any(syn_in_ebird)) {
+    
+      synonym <- species$synonym[syn_in_ebird]
+    
+      species_info <- ebird_scraping(synonym)
+    
+      if ("Breeding season" %in% species_info) {
+        return(get_migration_dates(species_info, buffer))
+      } else {
+        return(NULL)
+      }
+    } else {
+      return(c("06-01", "09-01"))
+    }
+  }
 }
 
 

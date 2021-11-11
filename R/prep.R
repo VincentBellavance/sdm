@@ -26,8 +26,22 @@ prep_spat_poly <- function(proj) {
 
     ### Bind US and Canada together
     q <- rbind(q1, q2) # This is the region of interest we want to model
-    q <- raster::aggregate(q, dissolve = T)
-    q <- sp::spTransform(q, sp::CRS(proj))
+    q <- terra::vect(q)
+    q <- terra::aggregate(q, dissolve = T)
+    q <- terra::project(q, proj)
+    q <- as(sf::st_as_sf(q), "Spatial")
+    raster::crs(q) <- proj
+
+#    t1 <- system.time({
+#      q <- terra::vect(q)
+#      q <- terra::aggregate(q, dissolve = T)
+#      q <- terra::project(q, proj)
+#      q <- as(sf::st_as_sf(q), "Spatial")
+#    })
+#    t2 <- system.time({
+#      q <- raster::aggregate(q, dissolve = T)
+#      q <- raster::raster::projectRaster(q, sp::CRS(proj))
+#    })
 
     saveRDS(q, "data/spacePoly.rds")
     return(q)
@@ -50,14 +64,14 @@ prep_mesh <- function(q, obs) {
   if(file.exists("data/mesh.rds")) {
     return(readRDS("data/mesh.rds"))
   } else {
-    pedge <- 0.02
+    pedge <- 0.01
     edge <- min(c(diff(raster::bbox(q)[1,])*pedge,diff(raster::bbox(q)[2,])*pedge))
     mesh <- INLA::inla.mesh.2d(boundary = q, 
                                 max.edge = c(edge, edge*5), 
                                 min.angle = 21,
                                 offset = c(edge, edge*2), 
                                 cutoff = edge/2, 
-                                crs = obs@proj4string)
+                                crs = sp::CRS(proj))
     saveRDS(mesh, "data/mesh.rds")
     return(mesh)
   }
@@ -73,16 +87,18 @@ prep_mesh <- function(q, obs) {
 #' 
 #' 
 
-prep_rast_pred <- function(q, obs) {
+prep_rast_pred <- function(q, proj, res) {
 
-  if(file.exists("data/rast.rds")) {
-    return(readRDS("data/rast.rds"))
+  if(file.exists("data/rast.gri")) {
+    return(raster::stack("data/rast.gri"))
   } else {
     ext <- raster::extent(q)
-    rast <- raster::raster(crs = obs@proj4string, ext = ext, resolution = 1000, vals = 1)
-    rast <- raster::mask(rast, q)
+    rast <- raster::raster(crs = sp::CRS(proj), ext = ext, resolution = res, vals = 1)
+    rast <- terra::mask(terra::rast(rast), terra::vect(q))
+    rast <- raster::raster(rast)
+    raster::crs(rast) <- sp::CRS(proj)
     names(rast) <- "none"
-    saveRDS(rast, "data/rast.rds")
+    raster::writeRaster(rast, "data/rast")
     return(rast)
   }
 }
@@ -109,32 +125,6 @@ prep_explana <- function(q, mesh, rast) {
     saveRDS(explana, "data/explana.rds")
     return(explana)
   }
-}
-
-
-#'
-#' 
-#' 
-#' 
-#' 
-#' 
-#' 
-#' 
-
-prep_folders <- function(year_start, window_width, species) {
-
-  years <- seq(from = year_start, by = 1, length.out = window_width)
-  folder_name <- tolower(gsub(" ", "_", species))
-  folder <- paste0("models/", folder_name)
-  dir.create(folder)
-  dir.create(paste0(folder,"/all"))
-  dir.create(paste0(folder,"/map"))
-  dir.create(paste0(folder,"/mod"))
-  dir.create(paste0(folder,"/qc"))
-  dir.create(paste0(folder,"/auc"))
-
-  return(folder)
-
 }
 
 

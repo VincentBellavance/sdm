@@ -7,7 +7,7 @@
 #' 
 #' 
 
-calc_auc <- function(mod, map, threshold, folder, year) {
+calc_auc <- function(mod, map, threshold) {
 
   ### Using vector of threshold to get 1/0 from model prediction 
   df <- as.data.frame(attributes(mod)$sPoints)
@@ -17,6 +17,7 @@ calc_auc <- function(mod, map, threshold, folder, year) {
     pred_tmp <- ifelse(df$pred >= threshold[j], 1, 0)
     auc[j, "auc"] <- pROC::auc(pROC::roc(df$occurrence, pred_tmp, quiet = TRUE), quiet = TRUE)
   }
-  saveRDS(auc, file.path(folder, paste0("auc/auc_",year,".rds")))
+  
+  return(auc)
 
 }
