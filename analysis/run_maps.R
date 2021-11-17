@@ -19,6 +19,7 @@ suppressMessages(library(mapSpecies))
 # Set variables
 threshold <- seq(args[1], args[2], by = 0.05)
 proj <- args[3]
+species <- gsub("output/maps/", "", args[4])
 
 # Import functions
 source("R/calc_auc.R")
@@ -39,68 +40,63 @@ if(!dir.exists("output/auc")) {
   dir.create("output/auc")
 }
 
-# List directories in '/output/models' that correspond to species names
-species <- list.dirs("output/models", recursive = FALSE, full.names = FALSE)
-
-
-#--- Launch loop ---#
-for(i in species) {
-
-  # Create directories for species 'i'
-  dir.create(paste0("output/maps", i))
-  dir.create(paste0("output/auc", i))
+# Create directories for species
+dir.create(paste0("output/maps/", species))
+dir.create(paste0("output/auc/", species))
   
-  # List all models from the specific species 'i'
-  models <- list.files(paste0("output/models/", i))
+# List all models from the specific species
+models <- list.files(paste0("output/models/", species))
 
-  # List years of the models
-  years <- as.integer(gsub(".rds", "", models))
+# List years of the models
+years <- as.integer(gsub(".rds", "", models))
 
-  # Loop on models
-  for(j in 1:length(models)) {
+# Make a list to store AUCs
+auc <- list()
+
+# Loop on models
+for(i in 1:length(models)) {
     
-    # Import model
-    mod <- readRDS("output/models/", i, "/", models[j])
+  # Import model
+  mod <- readRDS(paste0("output/models/", species, "/", models[i]))
 
-    # Make map for entire sPoly to compute AUC
-    map_all <- make_map(type = "mean_all",
-                        mod,
-                        rast,
-                        sPoly = q,
-                        year = years[j],
-                        proj)
+  # Make map for entire sPoly to compute AUC
+  map_all <- make_map(type = "mean_all",
+                      mod,
+                      rast,
+                      sPoly = q,
+                      year = years[i],
+                      proj)
 
-    # Compute threshold
-    auc <- calc_auc(mod, 
-                    map = map_all, 
-                    threshold)
+  # Compute threshold
+  auc[[i]] <- calc_auc(mod, 
+                       map = map_all, 
+                       threshold)
 
-    # Save treshold
-    saveRDS(auc, paste0("output/auc/", i, "/", years[j],".rds"))
-  
-    # Make map for Qc only
-    map <- make_map(type = "mean",
-                    mod,
-                    rast,
-                    sPoly = qc,
-                    year = years[j],
-                    proj)
+  # Make map for Qc only
+  map <- make_map(type = "mean",
+                  mod,
+                  rast,
+                  sPoly = qc,
+                  year = years[i],
+                  proj)
 
-    # Create stack if it doesn't exist, else stack the map to the existing one
-    if(exists("map_stack")) {
-      raster::stack(map_stack, map)
-    } else {
-      raster::stack(map)
-    }
-
-    # Save the stack of maps if it's the last year
-    if(j == length(models)) {
-      raster::writeRaster(map_stack, paste0("output/maps/", i, "/maps"))
-    }
-
-    # Clean before the next iteration
-    rm(mod, map_all, auc, map)
-
+  # Create stack if it doesn't exist, else stack the map to the existing one
+  if(exists("map_stack")) {
+    map_stack <- raster::stack(map_stack, map)
+  } else {
+    map_stack <- raster::stack(map)
   }
 
+  # Save the stack of maps if it's the last year
+  if(i == length(models)) {
+    
+    # Save treshold
+    names(auc) <- years
+    saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
+
+    # Save maps
+    raster::writeRaster(map_stack, paste0("output/maps/", species, "/maps"))
+  }
+
+  cat(paste0(years[i], " done\n"))
 }

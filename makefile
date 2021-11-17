@@ -6,7 +6,7 @@ get_species=analysis/species.R
 ## Analysis
 run_sdm=analysis/run_sdm.R
 ## Make map(entire zone + qc)
-#run_maps=analysis/run_maps.R
+run_maps=analysis/run_maps.R
 
 # Folders
 ## Make spatial object necessary for the models
@@ -19,11 +19,10 @@ rast=data/rast*
 FILE:=data/species_vect.txt
 species_vect:=$(file < $(FILE))
 sdms=$(addprefix output/models/, $(species_vect))
-species=data/species.rds
 ## Make map(entire zone + qc)
-maps=output/maps/*
+maps=$(addprefix output/maps/, $(species_vect))
 ## Compute AUC
-auc=output/auc/*
+auc=$(addprefix output/auc/, $(species_vect))
 
 # Arguments
 res=2
@@ -38,25 +37,26 @@ t2=0.55
 
 
 ## Make map(entire zone + qc) and compute AUC
-$(maps) $(auc): $(run_maps) $(sdms)
-	@Rscript $(run_maps) $(t1) $(t2) $(proj)
+$(maps) $(auc): $(run_maps) $(sdms) 
+	@Rscript $< $(t1) $(t2) $(proj) $@
 
 # Run SDMs for every species
-$(sdms): output/models/%: $(run_sdm) $(spacePoly) $(rast) $(mesh) $(explana)
-	@Rscript $(run_sdm) $@ $(year_start) $(year_end) $(window) $(buffer) $(proj) $(num_threads)
+$(sdms): $(run_sdm) $(spacePoly) $(rast) $(mesh) $(explana)
+	@Rscript $< $@ $(year_start) $(year_end) $(window) $(buffer) $(proj) $(num_threads)
 
 # Make spatial object necessary for the models
 $(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
 	@Rscript --vanilla $(run_spat_data) $(res) $(proj)
 
+# Declare all
+all: $(maps)
 
-# Get speciesthat will be modelled
-species:
+# Make species objects
+species: $(get_species)
 	@Rscript -e "source('$(get_species)')"
-
 
 # install dependencies
 install:
-	Rscript -e 'if (!require(raster)) install.packages("raster");if (!require(terra)) install.packages("terra");if (!require(sp)) devtools::install_github("sp");if (!require(pROC)) install.packages("pROC");if (!require(stringr)) install.packages("stringr");if (!require(rebird)) install.packages("rebird");if (!require(rvest)) install.packages("rvest");if (!require(RPostgres)) install.packages("RPostgres");if (!require(atlasBE)) devtools::install_github("VincentBellavance/atlasBE");if (!require(mapSpecies)) devtools::install_gitlab("observatoire/mapSpecies", host = "https://depot.ielab.usherbrooke.ca");'
+	Rscript -e 'if (!require(raster)) install.packages("raster");if (!require(terra)) install.packages("terra");if (!require(sp)) devtools::install_github("sp");if (!require(pROC)) install.packages("pROC");if (!require(stringr)) install.packages("stringr");if (!require(rebird)) install.packages("rebird");if (!require(rvest)) install.packages("rvest");if (!require(RPostgres)) install.packages("RPostgres");if (!require(atlasBE)) devtools::install_github("VincentBellavance/atlasBE");if (!require(mapSpecies)) devtools::install_github("ReseauBiodiversiteQuebec/mapSpecies");if (!require(rgdal)) install.packages("rgdal")'
 
 .PHONY: install species

@@ -8,7 +8,6 @@
 filter_dates <- function(obs, species, buffer) {
 
   mig_dates <- suppressMessages(time_interval(species, buffer))
-  cat("time interval done\n")
   if(!is.null(mig_dates)) {
     obs <- obs[!is.na(obs$month_obs) & !is.na(obs$day_obs), ]
     tmp_md <- paste0("2020-",obs$month_obs, "-", obs$day_obs)
@@ -33,7 +32,6 @@ filter_dates <- function(obs, species, buffer) {
 time_interval <- function(species, buffer) {
 
   ebird_taxa <- c(rebird::ebirdtaxonomy("species")[,"sciName"])[[1]]
-  cat("ebird taxa done\n")
   if(species$accepted %in% ebird_taxa) {
   
     species_info <- ebird_scraping(species$accepted)
