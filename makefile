@@ -46,7 +46,7 @@ $(sdms): $(run_sdm) $(spacePoly) $(rast) $(mesh) $(explana)
 
 # Make spatial object necessary for the models
 $(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
-	@Rscript --vanilla $(run_spat_data) $(res) $(proj)
+	@Rscript $(run_spat_data) $(res) $(proj)
 
 # Declare all
 all: $(maps)

@@ -5,13 +5,27 @@
 #--------------------------------------------------------------
 
 # Connexion to atlas db
-#con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
-#
-## Query species for three different sources
-#gbif <- dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank IN ('%pecies') AND source_name = 'GBIF Backbone Taxonomy';")
-#col <- dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank IN ('%pecies') AND source_name = 'Catalogue of Life';")
-#itis <- dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank IN ('%pecies') AND source_name = 'ITIS';")
-#
+con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
+
+# Query species for three different sources
+gbif <- RPostgres::dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank LIKE ('%pecies') AND source_name = 'GBIF Backbone Taxonomy';")
+col <- RPostgres::dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank LIKE ('%pecies') AND source_name = 'Catalogue of Life';")
+
+RPostgres::dbDisconnect(con)
+
+# Remove species that are not breeding
+breeding <- read.csv2("data/list_sp_qc.csv") |>
+              {\(x) x[x$status == "Nicheur", "species"]}()
+col <- col[col$valid_srid %in% col[col$scientific_name %in% breeding, "valid_srid"],]
+gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% breeding, "valid_srid"],]
+
+# Remove marine species (for now)
+marine <- read.csv2("data/list_marine_sp.csv")
+gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"],]
+col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"],]
+
+#TODO: Remove species without enough data
+
 #list_ref <- lapply(unique(col$valid_srid), function(x) {
 #  
 #  accepted <- col[col$valid_srid == x &
@@ -68,19 +82,7 @@
 #
 #final_list <- c(list_ref, gbif_list)
 
-final_list <- list(list(accepted = "Grus canadensis"), list(accepted = "Cardellina canadensis"))
-
-#if(!dir.exists("data/species/")) {
-#  dir.create("data/species/")
-#}
-#
-#lapply(final_list, function(x) {
-#  tmp <- tolower(gsub(" ", "_", x$accepted))
-#  if(!file.exists(paste0("data/species/", tmp))) {
-#    cat("", file = paste0("data/species/", tmp), append = FALSE)
-#  }
-#})
-file.remove("data/species_vect.txt")
+#final_list <- list(list(accepted = "Grus canadensis", synonym = "Antigone canadensis"), list(accepted = "Cardellina canadensis"))
 
 lapply(final_list, function(x) {
   cat(paste0(tolower(gsub(" ", "_", x$accepted)),"  "), file = "data/species_vect.txt", append = TRUE)
