@@ -35,7 +35,7 @@ print("qc done")
 mesh <- prep_mesh(q, proj)
 print("mesh done")
 # Make raster that will be used for prediction
-rast <- prep_rast_pred(q, proj)
+rast <- prep_rast_pred(q, proj, res)
 print("rast done")
 # Make explana Mesh
 explana <- prep_explana(q, mesh, rast)

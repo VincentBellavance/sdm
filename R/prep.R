@@ -94,9 +94,9 @@ prep_rast_pred <- function(q, proj, res) {
   } else {
     ext <- raster::extent(q)
     rast <- raster::raster(crs = sp::CRS(proj), ext = ext, resolution = res, vals = 1)
-    rast <- terra::mask(terra::rast(rast), terra::vect(q))
+    rast <- terra::crop(terra::rast(rast), terra::vect(q))
+    rast <- terra::mask(rast, terra::vect(q))
     rast <- raster::raster(rast)
-    raster::crs(rast) <- sp::CRS(proj)
     names(rast) <- "none"
     raster::writeRaster(rast, "data/rast")
     return(rast)
