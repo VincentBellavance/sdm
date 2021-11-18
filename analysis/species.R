@@ -5,24 +5,24 @@
 #--------------------------------------------------------------
 
 # Connexion to atlas db
-con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
-
-# Query species for three different sources
-gbif <- RPostgres::dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank LIKE ('%pecies') AND source_name = 'GBIF Backbone Taxonomy';")
-col <- RPostgres::dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank LIKE ('%pecies') AND source_name = 'Catalogue of Life';")
-
-RPostgres::dbDisconnect(con)
-
-# Remove species that are not breeding
-breeding <- read.csv2("data/list_sp_qc.csv") |>
-              {\(x) x[x$status == "Nicheur", "species"]}()
-col <- col[col$valid_srid %in% col[col$scientific_name %in% breeding, "valid_srid"],]
-gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% breeding, "valid_srid"],]
-
-# Remove marine species (for now)
-marine <- read.csv2("data/list_marine_sp.csv")
-gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"],]
-col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"],]
+#con <- atlasBE::conn(Sys.getenv("user"), Sys.getenv("pwd"), Sys.getenv("host"), Sys.getenv("dbname"))
+#
+## Query species for three different sources
+#gbif <- RPostgres::dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank LIKE ('%pecies') AND source_name = 'GBIF Backbone Taxonomy';")
+#col <- RPostgres::dbGetQuery(con, "SELECT * FROM api.bird_quebec_taxa_ref WHERE rank LIKE ('%pecies') AND source_name = 'Catalogue of Life';")
+#
+#RPostgres::dbDisconnect(con)
+#
+## Remove species that are not breeding
+#breeding <- read.csv2("data/list_sp_qc.csv") |>
+#              {\(x) x[x$status == "Nicheur", "species"]}()
+#col <- col[col$valid_srid %in% col[col$scientific_name %in% breeding, "valid_srid"],]
+#gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% breeding, "valid_srid"],]
+#
+## Remove marine species (for now)
+#marine <- read.csv2("data/list_marine_sp.csv")
+#gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"],]
+#col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"],]
 
 #TODO: Remove species without enough data
 
@@ -82,7 +82,7 @@ col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "va
 #
 #final_list <- c(list_ref, gbif_list)
 
-#final_list <- list(list(accepted = "Grus canadensis", synonym = "Antigone canadensis"), list(accepted = "Cardellina canadensis"))
+final_list <- list(list(accepted = "Grus canadensis", synonym = "Antigone canadensis"), list(accepted = "Cardellina canadensis"), list(accepted = "Cardinalis cardinalis"))
 
 lapply(final_list, function(x) {
   cat(paste0(tolower(gsub(" ", "_", x$accepted)),"  "), file = "data/species_vect.txt", append = TRUE)

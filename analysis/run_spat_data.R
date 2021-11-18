@@ -20,11 +20,6 @@ proj <- args[2]
 # Import functions
 source("R/prep.R")
 
-# Create 'data' directory if it doesn't exist
-if(!dir.exists("data/")) {
-  dir.create("data/")
-}
-
 # Make spatial polygon of the modeled area
 q <- prep_spat_poly(proj)
 print("q done")

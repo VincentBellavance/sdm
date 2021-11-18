@@ -51,6 +51,11 @@ $(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
 # Declare all
 all: $(maps)
 
+# Create data and output folders
+folders:
+	mkdir data
+	mkdir output
+
 # Make species objects
 species: $(get_species)
 	@Rscript -e "source('$(get_species)')"

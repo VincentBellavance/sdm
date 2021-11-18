@@ -73,12 +73,9 @@ for(i in 1:length(models)) {
                        threshold)
 
   # Make map for Qc only
-  map <- make_map(type = "mean",
-                  mod,
-                  rast,
-                  sPoly = qc,
-                  year = years[i],
-                  proj)
+  map <- terra::crop(terra::rast(map_all), terra::vect(qc)) |>
+    {\(.) terra::mask(., terra::vect(qc))}() |>
+      {\(.) raster::raster(.)}()
 
   # Create stack if it doesn't exist, else stack the map to the existing one
   if(exists("map_stack")) {

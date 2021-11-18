@@ -21,8 +21,6 @@ make_map <- function(type, mod, rast, sPoly, year, proj) {
 
   map <- raster::raster(map)
 
-  raster::crs(map) <- raster::crs(sPoly)
-
   names(map) <- paste0(type, "_", year)
 
   return(map)
