@@ -113,6 +113,7 @@ get_migration_dates <- function(species_info, buffer) {
     postdate <- strsplit(species_info[grep("Post-breeding migratory season", species_info)+1], split = " - ")[[1]][1]
   }
   
+  Sys.setlocale("LC_ALL","en_US.UTF-8")
   predate <- format(as.Date(predate , format = "%b %d") - buffer, "%m-%d")
   postdate <- format(as.Date(postdate , format = "%b %d") + buffer, "%m-%d")
 

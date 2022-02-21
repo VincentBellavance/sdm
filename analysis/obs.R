@@ -7,7 +7,6 @@ species <- gsub("occurrences/", "", args[1])
 species <- gsub(".rds", "", species)
 species <- gsub("_", " ", species)
 species <- stringr::str_to_sentence(species)
-print(species)
 year_start <- as.integer(args[2]) # 1990
 year_end <- as.integer(args[3]) # 2020
 window_width <- as.integer(args[4]) # 5
@@ -24,8 +23,6 @@ species_list <- readRDS("data/species.rds")
 which_species <- lapply(species_list, "[[", 1) %in% species
 species <- species_list[[which(which_species)]]
 
-print(species)
-print(packageVersion("ratlas"))
 #--- Get observations ---#
 obs <- get_obs(species$accepted, c(year_start, year_end))
 
@@ -66,7 +63,7 @@ if(!keep) {
   obs <- obs[,-which(colnames(obs) == "geom")]
 
   # Make spatialPointsDataFrame for the observations
-  obs <- sp::SpatialPointsDataFrame(coords, obs[,-c(1:2)], proj4string = sp::CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+  obs <- sp::SpatialPointsDataFrame(obs[,c(1:2)], obs[,-c(1:2)], proj4string = sp::CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
   obs <- sp::spTransform(obs, sp::CRS(proj))
 
   saveRDS(obs, paste0("occurrences/", gsub(" ", "_", tolower(species$accepted)), ".rds"))
