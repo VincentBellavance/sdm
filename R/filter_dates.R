@@ -8,10 +8,10 @@
 filter_dates <- function(obs, species, buffer) {
 
   mig_dates <- suppressMessages(time_interval(species, buffer))
+  
   if(!is.null(mig_dates)) {
     obs <- obs[!is.na(obs$month_obs) & !is.na(obs$day_obs), ]
-    tmp_md <- paste0("2020-",obs$month_obs, "-", obs$day_obs)
-    obs[,"tmp_md"] <- format(as.Date(tmp_md , format = "%Y-%m-%d") - buffer, "%m-%d")
+    obs[,"tmp_md"] <- format(as.Date(paste0(obs$month_obs,"-",obs$day_obs) , format = "%m-%d") - buffer, "%m-%d")
     obs <- obs[!is.na(obs$tmp_md),]
     obs <- obs[obs$tmp_md >= mig_dates[1] & obs$tmp_md <= mig_dates[2], ]
     obs <- obs[,-grep("tmp_md", colnames(obs))]
@@ -31,34 +31,24 @@ filter_dates <- function(obs, species, buffer) {
 
 time_interval <- function(species, buffer) {
 
-  ebird_taxa <- c(rebird::ebirdtaxonomy("species")[,"sciName"])[[1]]
-  if(species$accepted %in% ebird_taxa) {
   
-    species_info <- ebird_scraping(species$accepted)
+  ebird_taxa <- as.data.frame(rebird::ebirdtaxonomy("species"))
+
+  sp_code <- ebird_taxa[ebird_taxa$sciName %in% species$accepted, "speciesCode"]
+
+  if(length(sp_code) == 0) {
+    com <- ratlas::get_taxa(scientific_name=species$accepted)[,"vernacular_en"]
+    sp_code <- ebird_taxa[tolower(ebird_taxa$comName) %in% com, "speciesCode"]
+  }
+  
+  if(length(sp_code) > 0) {
+  
+    species_info <- ebird_scraping(sp_code)
 
     if ("Breeding season" %in% species_info) {
       return(get_migration_dates(species_info, buffer))
     } else {
       return(NULL)
-    }
-  
-  } else {
-
-    syn_in_ebird <- species$synonym %in% ebird_taxa
-    
-    if(any(syn_in_ebird)) {
-    
-      synonym <- species$synonym[syn_in_ebird]
-    
-      species_info <- ebird_scraping(synonym)
-    
-      if ("Breeding season" %in% species_info) {
-        return(get_migration_dates(species_info, buffer))
-      } else {
-        return(NULL)
-      }
-    } else {
-      return(c("06-01", "09-01"))
     }
   }
 }
@@ -71,16 +61,15 @@ time_interval <- function(species, buffer) {
 #' 
 #' 
 
-ebird_scraping <- function(species) {
-  
-  # Get species code to paste in the url
-  sp_code <- rebird::species_code(species)
-  
+ebird_scraping <- function(sp_code) {
+
+  # Get URL and content of the page  
   url <- paste0("https://ebird.org/science/status-and-trends/",sp_code,"/abundance-map")
   tmp <- rvest::read_html(url)
   tmp <- rvest::html_nodes(tmp, ".VisProduct-meta-main")
   tmp <- rvest::html_text(tmp)
 
+  # Clean the content
   cleaned <- strsplit(tmp, split = "\t")[[1]]
   cleaned <- gsub("\n", "", cleaned)
   cleaned <- cleaned[-which(nchar(cleaned) %in% c(0,1))]
