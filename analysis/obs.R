@@ -68,4 +68,5 @@ if(!keep) {
 
   saveRDS(obs, paste0("occurrences/", gsub(" ", "_", tolower(species$accepted)), ".rds"))
 
+  rm(list=ls())
 }
