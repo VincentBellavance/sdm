@@ -68,9 +68,9 @@ for(i in 1:length(models)) {
                       proj)
 
   # Compute threshold
-  auc[[i]] <- calc_auc(mod, 
-                       map = map_all, 
-                       threshold)
+  #auc[[i]] <- calc_auc(mod, 
+  #                     map = map_all, 
+  #                     threshold)
 
   # Make map for Qc only
   map <- terra::crop(terra::rast(map_all), terra::vect(qc)) |>
@@ -88,8 +88,8 @@ for(i in 1:length(models)) {
   if(i == length(models)) {
     
     # Save treshold
-    names(auc) <- years
-    saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
+  #  names(auc) <- years
+  #  saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
 
     # Save maps
     raster::writeRaster(map_stack, paste0("output/maps/", species, "/maps"))

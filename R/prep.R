@@ -58,13 +58,13 @@ prep_spat_poly <- function(proj) {
 #' 
 #' 
 
-prep_mesh <- function(q, obs) {
+prep_mesh <- function(q, proj) {
 
   # Make the mesh and convince yourself it's good enough (or read the mesh you did before!)
   if(file.exists("data/mesh.rds")) {
     return(readRDS("data/mesh.rds"))
   } else {
-    pedge <- 0.01
+    pedge <- 0.035
     edge <- min(c(diff(raster::bbox(q)[1,])*pedge,diff(raster::bbox(q)[2,])*pedge))
     mesh <- INLA::inla.mesh.2d(boundary = q, 
                                 max.edge = c(edge, edge*5), 

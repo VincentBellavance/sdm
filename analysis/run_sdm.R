@@ -18,51 +18,13 @@ suppressMessages(library(mapSpecies))
 
 # Set variables
 species <- gsub("output/models/", "", args[1])
+obs <- readRDS(paste0("occurrences/", species, ".rds"))
 species <- gsub("_", " ", species)
 species <- stringr::str_to_sentence(species)
 year_start <- as.integer(args[2]) # 1990
 year_end <- as.integer(args[3]) # 2020
 window_width <- as.integer(args[4]) # 5
-buffer <- as.integer(args[5]) # 21
-proj <- args[6] #"+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NAD83 +units=km +no_defs +ellps=GRS80 +towgs84=0,0,0"
-num_threads <- as.integer(args[7])
-
-# Import functions
-for(j in list.files("R", full.names = T)) {
-  source(j)
-}
-
-# List of species
-species_list <- readRDS("data/species.rds")
-which_species <- lapply(species_list, "[[", 1) %in% species
-species <- species_list[[which(which_species)]]
-
-#--- Get observations ---#
-obs <- get_obs(species$accepted, c(year_start, year_end))
-
-# Filter data with dates of observations
-obs <- filter_dates(obs, species, buffer)
-
-# If at least 5 observations by year for more than 5 consecutive years
-obs_by_year <- table(obs[obs$occurrence, "year_obs"]) > 5
-test <- rle(as.logical(obs_by_year))
-
-# Transform TRUE of FALSE for 1 or 0
-obs$occurrence <- ifelse(obs$occurrence == FALSE, 0, 1)
-
-# Extract coordinates from geom column
-coords <- extract_coords(obs$geom)
-
-# Bind coords and obs together
-obs <- cbind(coords, obs)
-
-# Remove geom column
-obs <- obs[,-which(colnames(obs) == "geom")]
-
-# Make spatialPointsDataFrame for the observations
-obs <- sp::SpatialPointsDataFrame(coords, obs[,-c(1:2)], proj4string = sp::CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
-obs <- sp::spTransform(obs, sp::CRS(proj))
-
+num_threads <- as.integer(args[5])
 
 #--- Continue setup ---#
 # Import spatial objects to make models
@@ -72,16 +34,17 @@ mesh <- readRDS("data/mesh.rds")
 rast <- raster::stack("data/rast.gri")
 explana <- readRDS("data/explana.rds")
 
-# Create output/models directory if it doesn't exist
-if(!dir.exists("output/models")) {
-  dir.create("output/models")
-}
+# List of species
+species_list <- readRDS("data/species.rds")
+which_species <- lapply(species_list, "[[", 1) %in% species
+species <- species_list[[which(which_species)]]
 
 #--- Launch loop ---#
 # Models species
 # Species name as a folders
 folder <- tolower(gsub(" ", "_", species$accepted))
 dir.create(paste0("output/models/", folder))
+dir.create(paste0("output/log/", folder))
 
 #--- Make models ---#
 # First time window
@@ -94,34 +57,33 @@ for(j in 0:(year_end-years[length(years)])) {
   year <- mean((years+j))
 
   ## Aggregate observations
-  obs_aggr <- aggregate_obs(obs, years, j, rast)
-  if(nrow(obs_aggr[obs_aggr$occurrence,]) > 25) {
-    ## Make model and pray that it makes sense
-    mod <- mapSpecies::uniSpace(occurrence ~ none,
-                                sPoints = obs_aggr,
-                                explanaMesh = explana, 
-                                family = "binomial",
-                                link = "logit", 
-                                control.compute = list(waic = TRUE),
-                                num.threads = num_threads,
-                                control.inla=list(int.strategy="ccd"), # with ccd or eb, seems less costly in RAM...
-                                prior.range = c(150, 0.05),
-                                prior.sigma = c(50, 0.05))
+  obs_filtered <- obs[obs$year_obs %in% (years+j),]
 
-    tmp <- mod["summary.fitted.values"]
-    attributes(tmp) <- attributes(mod)[c("meshSpace", "Stack", "sPoints")]
-    names(tmp) <- "summary.fitted.values"
-
-    mod <- tmp
+  if(nrow(obs_filtered[obs_filtered$occurrence,]) > 25) {
     
-    saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
+    ## Make model and pray that it makes sense
+    tryCatch(
+      expr = {
+        mod <- mapSpecies::uniSpace(occurrence ~ none,
+                                    sPoints = obs_filtered,
+                                    explanaMesh = explana, 
+                                    family = "binomial",
+                                    link = "logit", 
+                                    control.compute = list(waic = TRUE),
+                                    num.threads = num_threads,
+                                    control.inla=list(int.strategy="ccd"), # with ccd or eb, seems less costly in RAM...
+                                    prior.range = c(100, 0.05),
+                                    prior.sigma = c(0.1, 0.01),
+                                    verbose = TRUE)
+
+        saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
+      },
+      error=function(cond) {
+        cat(paste0("Error ", folder, " for year ", year, ": ", cond), 
+            sep = "\n\n", 
+            file = paste0("output/log/", folder, "/log"), 
+            append = file.exists(paste0("output/log/", folder, "/log")))
+      }
+    )
   }
-}
-
-mod_done <- as.integer(gsub(".rds", "", list.files(paste0("output/models/",folder))))
-cat(paste0(species,": ",length(mod_done)," models, from ",min(mod_done)," to ",max(mod_done),"\n"))
-
-if(any(!min(mod_done):max(mod_done) %in% mod_done)) {
-  mod_not <- min(mod_done):max(mod_done)[!min(mod_done):max(mod_done) %in% mod_done]
-  cat(paste0(species,": ",length(mod_not)," years not modelled: ",paste0(mod_not, collapse = ", "),"\n"))
 }

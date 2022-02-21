@@ -14,7 +14,7 @@ suppressMessages(library(mapSpecies))
 
 # Set variables arguments
 args = commandArgs(trailingOnly=TRUE)
-res <- as.integer(args[1]) # 2km
+res <- as.integer(args[1]) # 10km
 proj <- args[2]
 
 # Import functions

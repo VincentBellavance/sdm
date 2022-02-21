@@ -98,10 +98,21 @@ ebird_scraping <- function(species) {
 #' 
 
 get_migration_dates <- function(species_info, buffer) {
-    
-  predate <- strsplit(species_info[grep("Pre-breeding migratory season", species_info)+1], split = " - ")[[1]][2]
-  postdate <- strsplit(species_info[grep("Post-breeding migratory season", species_info)+1], split = " - ")[[1]][1]
+  
+  if(species_info[grep("Pre-breeding migratory season", species_info)+1] == "Not shown") {
+    breed <- strsplit(species_info[grep("Breeding season", species_info)+1], split = " - ")[[1]][1]
+    predate <- format(as.Date(breed, format = "%b %d") -7, "%b %d")
+  } else {
+    predate <- strsplit(species_info[grep("Pre-breeding migratory season", species_info)+1], split = " - ")[[1]][2]
+  }
 
+  if(species_info[grep("Post-breeding migratory season", species_info)+1] == "Not shown") {
+    breed <- strsplit(species_info[grep("Breeding season", species_info)+1], split = " - ")[[1]][2]
+    postdate <- format(as.Date(breed, format = "%b %d") + 7, "%b %d")
+  } else {
+    postdate <- strsplit(species_info[grep("Post-breeding migratory season", species_info)+1], split = " - ")[[1]][1]
+  }
+  
   predate <- format(as.Date(predate , format = "%b %d") - buffer, "%m-%d")
   postdate <- format(as.Date(postdate , format = "%b %d") + buffer, "%m-%d")
 
