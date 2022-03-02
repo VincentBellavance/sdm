@@ -10,24 +10,52 @@ gbif <- ratlas::list_bird_taxa(rank = "species", source_name = "GBIF Backbone Ta
 col <- ratlas::list_bird_taxa(rank = "species", source_name = "Catalogue of Life") |>
           (\(.) as.data.frame(.))()
 
-# Remove species that are not breeding
+
+# Species that are breeeding in Qc
 breeding <- read.csv2("data/list_sp_qc.csv") |>
               {\(x) x[x$status == "Nicheur", "species"]}()
+
+# Note which species are not a breeding
+removed_species <- unique(col[col$valid_srid %in% col[!col$scientific_name %in% breeding, "valid_srid"], "scientific_name"],
+                          gbif[gbif$valid_srid %in% gbif[!gbif$scientific_name %in% breeding, "valid_srid"], "scientific_name"])
+line <- paste0(paste0(removed_species, ";Is not a Qc breeding bird"), collapse = "\n")
+write(line, file = "removed_species.csv", append = T)
+
+# Filter species
 col <- col[col$valid_srid %in% col[col$scientific_name %in% breeding, "valid_srid"],]
 gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% breeding, "valid_srid"],]
 
-# Remove marine species (for now)
+
+# Marine species
 marine <- read.csv2("data/list_marine_sp.csv")
+
+# Note which species are marine (therefore not modelled)
+removed_species <- unique(col[col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"], "scientific_name"],
+                          gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"], "scientific_name"])
+line <- paste0(paste0(removed_species, ";Is a marine species"), collapse = "\n")
+write(line, file = "removed_species.csv", append = T)
+
+# Filter species
 gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"],]
 col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"],]
 
-# Remove species that do not have enough observations
+
+# Minimum observations necessary for every species
 avg_limit <- 30
 tot_limit <- 300
+
+# Note which species have been removed
+removed_species <- unique(col[col$avg_yearly_count < avg_limit & col$total_count < tot_limit, "scientific_name"],
+                          gbif[gbif$avg_yearly_count < avg_limit & gbif$total_count < tot_limit, "scientific_name"])
+line <- paste0(paste0(removed_species, ";Not enough data"), collapse = "\n")
+write(line, file = "removed_species.csv", append = T)
+
+# Filter species
 col <- col[col$avg_yearly_count >= avg_limit & col$total_count >= tot_limit, ]
 gbif <- gbif[gbif$avg_yearly_count >= avg_limit & gbif$total_count >= tot_limit, ]
 
 
+# Make list
 list_ref <- lapply(unique(col$valid_srid), function(x) {
   
   accepted <- col[col$valid_srid == x &
