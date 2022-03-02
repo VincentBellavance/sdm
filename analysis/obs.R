@@ -18,13 +18,16 @@ for(j in list.files("R", full.names = T)) {
   source(j)
 }
 
+# Connection to DB
+con <- atlasBE::conn(user=Sys.getenv("user"), pwd=Sys.getenv("pwd"), host=Sys.getenv("host"), dbname=Sys.getenv("dbname"))
+
 # List of species
 species_list <- readRDS("data/species.rds")
 which_species <- lapply(species_list, "[[", 1) %in% species
 species <- species_list[[which(which_species)]]
 
 #--- Get observations ---#
-obs <- get_obs(species$accepted, c(year_start, year_end))
+obs <- get_obs(con, species$accepted, c(year_start, year_end))
 
 # Extract coordinates from geom column
 coords <- extract_coords(obs$geom)
@@ -33,7 +36,7 @@ coords <- extract_coords(obs$geom)
 obs <- cbind(coords, obs)
 
 # Keep species or not
-keep <- keep_species(obs)
+keep <- keep_species(obs, species$accepted)
 
 if(!keep) {
   readLines(con = "data/species_vect.txt") |>
@@ -50,7 +53,7 @@ if(!keep) {
 } else {
 
   # Filter data with dates of observations
-  obs <- filter_dates(obs, species, buffer)
+  obs <- filter_dates(con, obs, species, buffer)
 
   # If at least 5 observations by year for more than 5 consecutive years
   #obs_by_year <- table(obs[obs$occurrence, "year_obs"]) > 5

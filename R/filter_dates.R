@@ -5,9 +5,9 @@
 #' 
 #' 
 
-filter_dates <- function(obs, species, buffer) {
+filter_dates <- function(con, obs, species, buffer) {
 
-  mig_dates <- suppressMessages(time_interval(species, buffer))
+  mig_dates <- suppressMessages(time_interval(con, species, buffer))
   
   if(!is.null(mig_dates)) {
     obs <- obs[!is.na(obs$month_obs) & !is.na(obs$day_obs), ]
@@ -29,23 +29,17 @@ filter_dates <- function(obs, species, buffer) {
 #' 
 #' 
 
-time_interval <- function(species, buffer) {
+time_interval <- function(con, species, buffer) {
 
-  
-  ebird_taxa <- as.data.frame(rebird::ebirdtaxonomy("species"))
-
-  sp_code <- ebird_taxa[ebird_taxa$sciName %in% species$accepted, "speciesCode"]
-
-  if(length(sp_code) == 0) {
-    com <- ratlas::get_taxa(scientific_name=species$accepted)[,"vernacular_en"]
-    sp_code <- ebird_taxa[tolower(ebird_taxa$comName) %in% com, "speciesCode"]
-  }
+  sp_code <- get_sp_code(species$accepted)
   
   if(length(sp_code) > 0) {
   
     species_info <- ebird_scraping(sp_code)
 
-    if ("Breeding season" %in% species_info) {
+    if(length(species_info) == 0) {
+      return(c("06-01", "09-01"))
+    } else if ("Breeding season" %in% species_info) {
       return(get_migration_dates(species_info, buffer))
     } else {
       return(NULL)
@@ -62,20 +56,25 @@ time_interval <- function(species, buffer) {
 #' 
 
 ebird_scraping <- function(sp_code) {
-
+  
   # Get URL and content of the page  
   url <- paste0("https://ebird.org/science/status-and-trends/",sp_code,"/abundance-map")
   tmp <- rvest::read_html(url)
   tmp <- rvest::html_nodes(tmp, ".VisProduct-meta-main")
   tmp <- rvest::html_text(tmp)
 
-  # Clean the content
-  cleaned <- strsplit(tmp, split = "\t")[[1]]
-  cleaned <- gsub("\n", "", cleaned)
-  cleaned <- cleaned[-which(nchar(cleaned) %in% c(0,1))]
+  if(length(tmp) != 0) {
+    # Clean the content
+    cleaned <- strsplit(tmp, split = "\t")[[1]]
+    cleaned <- gsub("\n", "", cleaned)
+    cleaned <- cleaned[-which(nchar(cleaned) %in% c(0,1))]
+  
+    return(cleaned)
+  } else {
+    return(NULL)
+  }
 
-  return(cleaned)
-
+  
 }
 
 
@@ -107,5 +106,32 @@ get_migration_dates <- function(species_info, buffer) {
   postdate <- format(as.Date(postdate , format = "%b %d") + buffer, "%m-%d")
 
   return(c(predate, postdate))
+
+}
+
+
+#'
+#' 
+#' 
+#' 
+#' 
+#' 
+
+get_sp_code <- function(species) {
+  
+  ebird_taxa <- as.data.frame(rebird::ebirdtaxonomy("species"))
+
+  sp_code <- ebird_taxa[ebird_taxa$sciName %in% species, "speciesCode"]
+
+  if(length(sp_code) == 0) {
+    com <- as.vector(unlist(RPostgres::dbGetQuery(con, paste0("SELECT vernacular_en FROM api.taxa WHERE valid_scientific_name = '",species,"';"))))
+    sp_code <- ebird_taxa[tolower(ebird_taxa$comName) %in% com, "speciesCode"]
+  }
+
+  if(length(sp_code) == 0) {
+    return(NULL)
+  } else {
+    return(sp_code)
+  }
 
 }

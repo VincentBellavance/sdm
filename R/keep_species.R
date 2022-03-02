@@ -6,16 +6,28 @@
 #'
 #'
 
-keep_species <- function(obs) {
+keep_species <- function(obs, species) {
 
-  species_info <- ebird_scraping(species$accepted)
-  
-  if("Breeding season" %in% species_info) {
+  sp_code <- get_sp_code(species)
+
+  if(!is.null(sp_code)) {
+    species_info <- ebird_scraping(sp_code)
+
     qc <- obs_qc(obs)
     qc_mo <- table(qc$month_obs)
-    return(which(max(qc_mo) == qc_mo) %in% c(5:9))
+    summer <- which(max(qc_mo) == qc_mo) %in% c(5:9)
+
+    if("Breeding season" %in% species_info & summer) {
+      return(TRUE)
+    } else if(length(species_info) == 0 & summer) {
+      return(TRUE)
+    } else if("Year-round" %in% species_info) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
   } else {
-    return(TRUE)
+    return(FALSE)
   }
   
 }
