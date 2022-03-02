@@ -28,9 +28,19 @@ keep_species <- function(obs, species) {
     } else if("Year-round" %in% species_info) {
       return(TRUE)
     } else {
+      line <- gsub("_", " ", species) |>
+                stringr::str_to_sentence() |>
+                  paste0(";",paste0(qc_mo, collapse=";"))
+      write(line, file = "rm_sp_month.csv", append = TRUE, sep = "\n")
+      write(paste0(species,";Max obs is not in summer"), file = "removed_species.csv", append = TRUE, sep = "\n")
       return(FALSE)
     }
   } else {
+    line <- gsub("_", " ", species) |>
+          stringr::str_to_sentence() |>
+            paste0(";",paste0(rep("", 12), collapse=";"))
+    write(line, file = "rm_sp_month.csv", append = TRUE, sep = "\n")
+    write(paste0(species,";Could not find info on species"), file = "removed_species.csv", append = TRUE, sep = "\n")
     return(FALSE)
   }
   
