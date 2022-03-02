@@ -1,7 +1,6 @@
-models/*
-crap
+output/*
 data/*
-/test/*
 *.rds
 *.csv
 !placeholder
+occurrences/*
