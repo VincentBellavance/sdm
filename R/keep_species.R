@@ -18,7 +18,11 @@ keep_species <- function(obs, species) {
     summer <- which(max(qc_mo) == qc_mo) %in% c(5:9)
 
     if("Breeding season" %in% species_info & summer) {
-      return(TRUE)
+      if(species_info[which(species_info %in% "Breeding season")+1] == "Not shown") {
+        return(FALSE)
+      } else {
+        return(TRUE)
+      }
     } else if(length(species_info) == 0 & summer) {
       return(TRUE)
     } else if("Year-round" %in% species_info) {

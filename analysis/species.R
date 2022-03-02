@@ -10,21 +10,6 @@ gbif <- ratlas::list_bird_taxa(rank = "species", source_name = "GBIF Backbone Ta
 col <- ratlas::list_bird_taxa(rank = "species", source_name = "Catalogue of Life") |>
           (\(.) as.data.frame(.))()
 
-# Select only insectivores
-#insectivores <- read.csv2("data/sp_habitats.csv") |> 
-#                  (\(.) .[!is.na(.$insectivores), "species"])()
-#col <- col[col$valid_srid %in% col[col$scientific_name %in% insectivores, "valid_srid"],] |>
-#         (\(.) .[.$avg_yearly_count >=25, ])()
-#gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% insectivores, "valid_srid"],] |>
-#          (\(.) .[.$avg_yearly_count >=25, ])()
-#
-#proie <- read.csv2("data/sp_habitats.csv") |> 
-#                  (\(.) .[!is.na(.$oiseau_proie), "species"])()
-#col <- col[col$valid_srid %in% col[col$scientific_name %in% proie, "valid_srid"],] |>
-#         (\(.) .[.$avg_yearly_count >=25, ])()
-#gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% proie, "valid_srid"],] |>
-#          (\(.) .[.$avg_yearly_count >=25, ])()
-
 # Remove species that are not breeding
 breeding <- read.csv2("data/list_sp_qc.csv") |>
               {\(x) x[x$status == "Nicheur", "species"]}()
@@ -36,22 +21,21 @@ marine <- read.csv2("data/list_marine_sp.csv")
 gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"],]
 col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"],]
 
-#TODO: Remove species without enough data
+# Remove species that do not have enough observations
+avg_limit <- 30
+tot_limit <- 300
+col <- col[col$avg_yearly_count >= avg_limit & col$total_count >= tot_limit, ]
+gbif <- gbif[gbif$avg_yearly_count >= avg_limit & gbif$total_count >= tot_limit, ]
+
 
 list_ref <- lapply(unique(col$valid_srid), function(x) {
   
   accepted <- col[col$valid_srid == x &
                   col$valid, "scientific_name"]
-  synonym <- col[col$valid_srid == x & 
-                 !col$valid, "scientific_name"]
   
   tmp <- list(
     accepted = accepted
   )
-
-  if(length(synonym) > 0) {
-    tmp[["synonym"]] <- synonym
-  }
 
   return(tmp)
 
