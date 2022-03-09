@@ -1,0 +1,104 @@
+# Make maps for all sPoly and for Qc only + compute AUC for different threshold
+
+#--------------------------------------------------------------
+# Steps:
+# 1. Setup environment
+# 2. In a loop:
+#   2.1: Make map for entire sPoly
+#   2.2: Compute AUC with different threshold
+#   2.3: Crop and mask entire sPoly to get map for Qc only
+#--------------------------------------------------------------
+
+#--- Setup ---#
+# Import arguments
+args = commandArgs(trailingOnly=TRUE)
+
+# Import mapSpecies
+suppressMessages(library(mapSpecies))
+
+# Set variables
+threshold <- seq(args[1], args[2], by = 0.05)
+proj <- args[3]
+species <- gsub("output/maps/", "", args[4])
+
+# Import functions
+#source("R/calc_auc.R")
+source("R/make_map_gam.R")
+
+# Import spatial objects
+q <- readRDS("data/spacePoly.rds")
+qc <- readRDS("data/qc_spacePoly.rds")
+rast <- raster::stack("data/rast.gri")
+
+# Create output/maps directory if it doesn't exist
+if(!dir.exists("output/maps")) {
+  dir.create("output/maps")
+  dir.create("output/maps/qc")
+  dir.create("output/maps/region")
+}
+
+# Create output/auc directory if it doesn't exist
+if(!dir.exists("output/auc")) {
+  dir.create("output/auc")
+}
+
+# Create directories for species
+dir.create(paste0("output/maps/", species))
+dir.create(paste0("output/auc/", species))
+  
+# List all models from the specific species
+models <- list.files(paste0("output/models/", species))
+
+# List years of the models
+years <- as.integer(gsub(".rds", "", models))
+
+# Make a list to store AUCs
+#auc <- list()
+
+# Loop on models
+for(i in 1:length(models)) {
+    
+  # Import model
+  mod <- readRDS(paste0("output/models/", species, "/", models[i]))
+
+  # Make map for entire sPoly to compute AUC
+  map_all <- make_map_gam(mod, rast)
+  names(map_all) <- paste0("region_", years[i])
+  # Compute threshold
+  #auc[[i]] <- calc_auc(mod, 
+  #                     map = map_all, 
+  #                     threshold)
+
+  # Make map for Qc only
+  map <- terra::crop(terra::rast(map_all), terra::vect(qc)) |>
+    {\(.) terra::mask(., terra::vect(qc))}() |>
+      {\(.) raster::raster(.)}()
+  names(map) <- paste0("qc_", years[i])
+  
+  # Create stack if it doesn't exist, else stack the map to the existing one
+  if(exists("region_stack")) {
+    region_stack <- raster::stack(region_stack, map_all)
+  } else {
+    region_stack <- raster::stack(map_all)
+  }
+
+  if(exists("qc_stack")) {
+    qc_stack <- raster::stack(qc_stack, map)
+  } else {
+    qc_stack <- raster::stack(map)
+  }
+
+  # Save the stack of maps if it's the last year
+  if(i == length(models)) {
+    
+    # Save treshold
+  #  names(auc) <- years
+  #  saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
+
+    # Save maps
+    raster::writeRaster(region_stack, paste0("output/maps/region", species, "/maps"))
+    raster::writeRaster(qc_stack, paste0("output/maps/qc", species, "/maps"))
+  }
+
+  cat(paste0(years[i], " done\n"))
+}
