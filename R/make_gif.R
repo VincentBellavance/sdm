@@ -7,7 +7,7 @@
 #' 
 #' 
 
-make_gif(folder, region) {
+make_gif <- function(folder, region) {
 
   # Make a GIF for the QC map (both mean and CI)
   imgs <- list.files(paste0(folder, region), full.names = TRUE)
