@@ -13,31 +13,39 @@ col <- ratlas::list_bird_taxa(rank = "species", source_name = "Catalogue of Life
 
 # Species that are breeeding in Qc
 breeding <- read.csv2("data/list_sp_qc.csv") |>
-              {\(x) x[x$status == "Nicheur", "species"]}()
+              {\(x) x[x$status == "Nicheur", "species", drop = FALSE]}()
+
+valid_breeding <- ratlas::get_taxa(scientific_name = breeding$species)
+
+tmp <- dplyr::left_join(breeding, valid_breeding[,c("observed_scientific_name", "valid_scientific_name")], by = c(species = "observed_scientific_name"))
 
 # Note which species are not a breeding
-removed_species <- unique(col[col$valid_srid %in% col[!col$scientific_name %in% breeding, "valid_srid"], "scientific_name"],
-                          gbif[gbif$valid_srid %in% gbif[!gbif$scientific_name %in% breeding, "valid_srid"], "scientific_name"])
+removed_species <- unique(col[col$valid_srid %in% col[!col$scientific_name %in% tmp$valid_scientific_name, "valid_srid"], "scientific_name"],
+                          gbif[gbif$valid_srid %in% gbif[!gbif$scientific_name %in% tmp$valid_scientific_name, "valid_srid"], "scientific_name"])
 line <- paste0(paste0(removed_species, ";Is not a Qc breeding bird"), collapse = "\n")
 write(line, file = "removed_species.csv", append = T)
 
 # Filter species
-col <- col[col$valid_srid %in% col[col$scientific_name %in% breeding, "valid_srid"],]
-gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% breeding, "valid_srid"],]
+col <- col[col$valid_srid %in% col[col$scientific_name %in% tmp$valid_scientific_name, "valid_srid"],]
+gbif <- gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% tmp$valid_scientific_name, "valid_srid"],]
 
 
 # Marine species
 marine <- read.csv2("data/list_marine_sp.csv")
 
+valid_marine <- ratlas::get_taxa(scientific_name = marine$species)
+
+tmp <- dplyr::left_join(marine, valid_marine[,c("observed_scientific_name", "valid_scientific_name")], by = c(species = "observed_scientific_name"))
+
 # Note which species are marine (therefore not modelled)
-removed_species <- unique(col[col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"], "scientific_name"],
-                          gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"], "scientific_name"])
+removed_species <- unique(col[col$valid_srid %in% col[col$scientific_name %in% tmp$valid_scientific_name, "valid_srid"], "scientific_name"],
+                          gbif[gbif$valid_srid %in% gbif[gbif$scientific_name %in% tmp$valid_scientific_name, "valid_srid"], "scientific_name"])
 line <- paste0(paste0(removed_species, ";Is a marine species"), collapse = "\n")
 write(line, file = "removed_species.csv", append = T)
 
 # Filter species
-gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% marine$species, "valid_srid"],]
-col <- col[!col$valid_srid %in% col[col$scientific_name %in% marine$species, "valid_srid"],]
+gbif <- gbif[!gbif$valid_srid %in% gbif[gbif$scientific_name %in% tmp$valid_scientific_name, "valid_srid"],]
+col <- col[!col$valid_srid %in% col[col$scientific_name %in% tmp$valid_scientific_name, "valid_srid"],]
 
 
 # Minimum observations necessary for every species
