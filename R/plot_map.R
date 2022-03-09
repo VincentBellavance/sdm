@@ -7,7 +7,9 @@
 #' 
 #' 
 
-plot_map <- function(map, title) {
+plot_map <- function(file, map, title, region) {
+
+  png(file, width = 960, height = 960)
   raster::plot(map, 
                zlim = c(0, 1),
                axes = FALSE, 
@@ -16,6 +18,7 @@ plot_map <- function(map, title) {
   sp::plot(qc, 
            lwd=0.2, 
            add = TRUE)
+  dev.off()
 }
 
 
