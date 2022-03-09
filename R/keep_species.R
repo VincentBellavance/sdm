@@ -15,10 +15,14 @@ keep_species <- function(obs, species) {
 
     qc <- obs_qc(obs)
     qc_mo <- table(qc$month_obs)
-    summer <- which(max(qc_mo) == qc_mo) %in% c(5:9)
+    months <- as.integer(names(qc_mo))
+    qc_mo <- sapply(1:12, function(x) ifelse(x %in% months, qc_mo[months == x], 0))
+    names(qc_mo) <- 1:12
+    summer <- names(qc_mo)[qc_mo == max(qc_mo)] %in% c(5:9)
 
     if("Breeding season" %in% species_info & summer) {
       if(species_info[which(species_info %in% "Breeding season")+1] == "Not shown") {
+        write(paste0(species,";Breeding info not shown"), file = "removed_species.csv", append = TRUE, sep = "\n")
         return(FALSE)
       } else {
         return(TRUE)
@@ -28,9 +32,19 @@ keep_species <- function(obs, species) {
     } else if("Year-round" %in% species_info) {
       return(TRUE)
     } else {
+      line <- gsub("_", " ", species) |>
+                stringr::str_to_sentence() |>
+                  paste0(";",paste0(qc_mo, collapse=";"))
+      write(line, file = "rm_sp_month.csv", append = TRUE, sep = "\n")
+      write(paste0(species,";Max obs is not in summer"), file = "removed_species.csv", append = TRUE, sep = "\n")
       return(FALSE)
     }
   } else {
+    line <- gsub("_", " ", species) |>
+          stringr::str_to_sentence() |>
+            paste0(";",paste0(rep("", 12), collapse=";"))
+    write(line, file = "rm_sp_month.csv", append = TRUE, sep = "\n")
+    write(paste0(species,";Could not find info on species"), file = "removed_species.csv", append = TRUE, sep = "\n")
     return(FALSE)
   }
   
