@@ -17,13 +17,15 @@ args = commandArgs(trailingOnly=TRUE)
 suppressMessages(library(mapSpecies))
 
 # Set variables
-threshold <- seq(args[1], args[2], by = 0.05)
-proj <- args[3]
-species <- gsub("output/maps/", "", args[4])
+#threshold <- seq(args[1], args[2], by = 0.05)
+#proj <- args[3]
+species <- gsub("output/maps/", "", args[1])
 
 # Import functions
 #source("R/calc_auc.R")
 source("R/make_map_gam.R")
+source("R/plot_map.R")
+source("R/make_gif.R")
 
 # Import spatial objects
 q <- readRDS("data/spacePoly.rds")
@@ -33,8 +35,6 @@ rast <- raster::stack("data/rast.gri")
 # Create output/maps directory if it doesn't exist
 if(!dir.exists("output/maps")) {
   dir.create("output/maps")
-  dir.create("output/maps/qc")
-  dir.create("output/maps/region")
 }
 
 # Create output/auc directory if it doesn't exist
@@ -44,7 +44,11 @@ if(!dir.exists("output/auc")) {
 
 # Create directories for species
 dir.create(paste0("output/maps/", species))
-dir.create(paste0("output/auc/", species))
+dir.create(paste0("output/maps/", species,"/qc"))
+dir.create(paste0("output/maps/", species,"/region"))
+dir.create(paste0("output/maps/", species,"/qc/png/"))
+dir.create(paste0("output/maps/", species,"/region/png/"))
+#dir.create(paste0("output/auc/", species))
   
 # List all models from the specific species
 models <- list.files(paste0("output/models/", species))
@@ -75,6 +79,15 @@ for(i in 1:length(models)) {
       {\(.) raster::raster(.)}()
   names(map) <- paste0("qc_", years[i])
   
+  plot_map(paste0("output/maps/", species, "/qc/png/",years[i],".png"),
+           map,
+           paste0(species,"_", years[i]),
+           qc)
+  plot_map(paste0("output/maps/", species, "/region/png/",years[i],".png"),
+           map,
+           paste0(species,"_", years[i]),
+           q)
+
   # Create stack if it doesn't exist, else stack the map to the existing one
   if(exists("region_stack")) {
     region_stack <- raster::stack(region_stack, map_all)
@@ -96,9 +109,12 @@ for(i in 1:length(models)) {
   #  saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
 
     # Save maps
-    raster::writeRaster(region_stack, paste0("output/maps/region", species, "/maps"))
-    raster::writeRaster(qc_stack, paste0("output/maps/qc", species, "/maps"))
+    raster::writeRaster(region_stack, paste0("output/maps/", species, "/qc/maps"))
+    raster::writeRaster(qc_stack, paste0("output/maps/", species, "/region/maps"))
   }
 
   cat(paste0(years[i], " done\n"))
 }
+
+make_gif(paste0("output/maps/", species, "/qc"))
+make_gif(paste0("output/maps/", species, "/region"))

@@ -7,8 +7,10 @@ get_species=analysis/species.R
 get_occ=analysis/obs.R
 ## Analysis
 run_sdm=analysis/run_sdm.R
+run_sdm_gam=analysis/run_sdm_gam.R
 ## Make map(entire zone + qc)
 run_maps=analysis/run_maps.R
+run_maps_gam=analysis/run_maps_gam.R
 
 # Folders
 ## Make spatial object necessary for the models
@@ -40,13 +42,17 @@ t1=0.05
 t2=0.55
 
 
-## Make map(entire zone + qc) and compute AUC
-#$(maps) $(auc): $(run_maps) $(sdms) 
-#	@Rscript $< $(t1) $(t2) $(proj) $@
+# Make map(entire zone + qc) and compute AUC
+$(maps): $(run_maps) $(sdms) 
+	@Rscript $< $@
+
+maps_gam: $(maps)
 
 # Run SDMs for every species
-$(sdms): $(run_sdm)
-	@Rscript $< $@ $(year_start) $(year_end) $(window) $(num_threads)
+$(sdms): $(run_sdm_gam)
+	@Rscript $< $@ $(year_start) $(year_end) $(window)
+
+models_gam: $(sdms)
 
 # Make spatial object necessary for the models
 $(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
