@@ -14,7 +14,7 @@
 args = commandArgs(trailingOnly=TRUE)
 
 # Import mapSpecies
-suppressMessages(library(mapSpecies))
+suppressMessages(library(mgcv))
 
 # Set variables
 species <- gsub("output/models/", "", args[1])
