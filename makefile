@@ -20,15 +20,13 @@ explana=data/explana.rds
 mesh=data/mesh.rds
 rast=data/rast*
 ## SDMs targets (multiple targets - one by species)
-FILE:=data/species_vect.txt
-species_vect:=$(file < $(FILE))
-sdms=$(addprefix output/models/, $(species_vect))
+sdms=$(addprefix output/models/, $(species))
 ## Make map(entire zone + qc)
-maps=$(addprefix output/maps/, $(species_vect))
+maps=$(addprefix output/maps/, $(species))
 ## Compute AUC
-auc=$(addprefix output/auc/, $(species_vect))
+auc=$(addprefix output/auc/, $(species))
 ## Occurrences
-occ=$(addsuffix .rds, $(addprefix occurrences/, $(species_vect)))
+occ=$(addsuffix .rds, $(addprefix occurrences/, $(species)))
 
 # Arguments
 res=10
