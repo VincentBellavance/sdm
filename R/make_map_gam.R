@@ -7,7 +7,7 @@
 #' 
 #' 
 
-make_map <- function(mod, rast) {
+make_map_gam <- function(mod, rast) {
 
   new_coord <- as.data.frame(raster::coordinates(rast))
   colnames(new_coord) <- c("lon", "lat")

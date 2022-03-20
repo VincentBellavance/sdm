@@ -14,7 +14,8 @@
 args = commandArgs(trailingOnly=TRUE)
 
 # Import mapSpecies
-suppressMessages(library(mapSpecies))
+suppressMessages(library(mgcv))
+suppressMessages(library(raster))
 
 # Set variables
 #threshold <- seq(args[1], args[2], by = 0.05)
@@ -68,6 +69,10 @@ for(i in 1:length(models)) {
   # Make map for entire sPoly to compute AUC
   map_all <- make_map_gam(mod, rast)
   names(map_all) <- paste0("region_", years[i])
+  raster::crs(map_all) <- raster::crs(rast)
+  map_all <- terra::crop(terra::rast(map_all), terra::vect(q)) |>
+               {\(.) terra::mask(., terra::vect(q))}() |>
+                 {\(.) raster::raster(.)}()
   # Compute threshold
   #auc[[i]] <- calc_auc(mod, 
   #                     map = map_all, 
@@ -78,13 +83,14 @@ for(i in 1:length(models)) {
     {\(.) terra::mask(., terra::vect(qc))}() |>
       {\(.) raster::raster(.)}()
   names(map) <- paste0("qc_", years[i])
+  raster::crs(map) <- raster::crs(rast)
   
   plot_map(paste0("output/maps/", species, "/qc/png/",years[i],".png"),
            map,
            paste0(species,"_", years[i]),
            qc)
   plot_map(paste0("output/maps/", species, "/region/png/",years[i],".png"),
-           map,
+           map_all,
            paste0(species,"_", years[i]),
            q)
 
