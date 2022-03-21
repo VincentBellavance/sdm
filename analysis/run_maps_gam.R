@@ -68,6 +68,9 @@ for(i in 1:length(models)) {
   # Make map for entire sPoly to compute AUC
   map_all <- make_map_gam(mod, rast)
   names(map_all) <- paste0("region_", years[i])
+  map_all <- terra::crop(terra::rast(map_all), terra::vect(q)) |>
+    {\(.) terra::mask(., terra::vect(q))}() |>
+      {\(.) raster::raster(.)}()
   # Compute threshold
   #auc[[i]] <- calc_auc(mod, 
   #                     map = map_all, 
