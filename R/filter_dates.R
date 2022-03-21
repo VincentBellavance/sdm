@@ -31,7 +31,7 @@ filter_dates <- function(con, obs, species, buffer) {
 
 time_interval <- function(con, species, buffer) {
 
-  sp_code <- get_sp_code(species$accepted)
+  sp_code <- get_sp_code(species$accepted, con)
   
   if(length(sp_code) > 0) {
   
@@ -39,6 +39,8 @@ time_interval <- function(con, species, buffer) {
 
     if(length(species_info) == 0) {
       return(c("06-01", "09-01"))
+    } else if("Year-round" %in% species_info) {
+      return(NULL)
     } else if ("Breeding season" %in% species_info) {
       return(get_migration_dates(species_info, buffer))
     } else {
@@ -117,7 +119,7 @@ get_migration_dates <- function(species_info, buffer) {
 #' 
 #' 
 
-get_sp_code <- function(species) {
+get_sp_code <- function(species, con) {
   
   ebird_taxa <- as.data.frame(rebird::ebirdtaxonomy("species"))
 
@@ -125,6 +127,7 @@ get_sp_code <- function(species) {
 
   if(length(sp_code) == 0) {
     com <- as.vector(unlist(RPostgres::dbGetQuery(con, paste0("SELECT vernacular_en FROM api.taxa WHERE valid_scientific_name = '",species,"';"))))
+    if(com == "fandhill crane") com <- "sandhill crane"
     sp_code <- ebird_taxa[tolower(ebird_taxa$comName) %in% com, "speciesCode"]
   }
 

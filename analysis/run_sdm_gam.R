@@ -55,7 +55,7 @@ for(j in 0:(year_end-years[length(years)])) {
     ## Make model and pray that it makes sense
     tryCatch(
       expr = {
-        mod <- mgcv::gam(occurrence ~ s(lon, lat), data = obs_filtered, family = "binomial", method = "REML")
+        mod <- mgcv::gam(occurrence ~ s(lon, lat, k = 2), data = obs_filtered, family = "binomial", method = "REML")
 
         saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
       },
