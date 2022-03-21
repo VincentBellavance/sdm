@@ -17,13 +17,14 @@ args = commandArgs(trailingOnly=TRUE)
 suppressMessages(library(mapSpecies))
 
 # Set variables
-threshold <- seq(args[1], args[2], by = 0.05)
-proj <- args[3]
-species <- gsub("output/maps/", "", args[4])
+proj <- args[1]
+species <- gsub("output/maps/", "", args[2])
 
 # Import functions
 source("R/calc_auc.R")
 source("R/make_map.R")
+source("R/plot_map.R")
+source("R/make_gif.R")
 
 # Import spatial objects
 q <- readRDS("data/spacePoly.rds")
@@ -35,23 +36,16 @@ if(!dir.exists("output/maps")) {
   dir.create("output/maps")
 }
 
-# Create output/auc directory if it doesn't exist
-if(!dir.exists("output/auc")) {
-  dir.create("output/auc")
-}
-
 # Create directories for species
 dir.create(paste0("output/maps/", species))
-dir.create(paste0("output/auc/", species))
-  
+dir.create(paste0("output/maps/", species,"/qc"))
+dir.create(paste0("output/maps/", species,"/region"))
+ 
 # List all models from the specific species
 models <- list.files(paste0("output/models/", species))
 
 # List years of the models
 years <- as.integer(gsub(".rds", "", models))
-
-# Make a list to store AUCs
-auc <- list()
 
 # Loop on models
 for(i in 1:length(models)) {
@@ -66,16 +60,21 @@ for(i in 1:length(models)) {
                       sPoly = q,
                       year = years[i],
                       proj)
-
-  # Compute threshold
-  #auc[[i]] <- calc_auc(mod, 
-  #                     map = map_all, 
-  #                     threshold)
+  
+  plot_map(file = paste0("output/maps/", species,"/region/",years[i],".png"),
+           map = map_all,
+           title = paste0(species,"_",years[i]),
+	   region = q)
 
   # Make map for Qc only
-  map <- terra::crop(terra::rast(map_all), terra::vect(qc)) |>
-    {\(.) terra::mask(., terra::vect(qc))}() |>
-      {\(.) raster::raster(.)}()
+  map <- terra::crop(terra::rast(map_all), terra::vect(qc))
+  map <- terra::mask(map, terra::vect(qc))
+  map <- raster::raster(map)
+
+  plot_map(file = paste0("output/maps/", species,"/qc/",years[i],".png"),
+           map = map,
+           title = paste0(species,"_",years[i]),
+           region = qc)
 
   # Create stack if it doesn't exist, else stack the map to the existing one
   if(exists("map_stack")) {
@@ -84,16 +83,21 @@ for(i in 1:length(models)) {
     map_stack <- raster::stack(map)
   }
 
+  # Clean  
+  rm(map_all)
+  rm(map)
+  rm(mod)
+
   # Save the stack of maps if it's the last year
   if(i == length(models)) {
-    
-    # Save treshold
-  #  names(auc) <- years
-  #  saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
-
-    # Save maps
     raster::writeRaster(map_stack, paste0("output/maps/", species, "/maps"))
   }
 
   cat(paste0(years[i], " done\n"))
 }
+
+make_gif(folder = paste0("output/maps/",species,"/"), region = "region")
+make_gif(folder = paste0("output/maps/",species,"/"), region = "qc")
+
+# Clean
+rm(map_stack)

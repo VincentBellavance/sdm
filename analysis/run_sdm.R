@@ -50,13 +50,17 @@ dir.create(paste0("output/log/", folder))
 # First time window
 years <- year_start:(year_start+window_width-1)
 
+# Setup priors
+#prange <- 150
+#psigma <- 5
+
 # Make models for every time windows
 for(j in 0:(year_end-years[length(years)])) {
-
-  ## Mean year of the time window
+ 
+ ## Mean year of the time window
   year <- mean((years+j))
 
-  ## Aggregate observations
+   ## Filter observations
   obs_filtered <- obs[obs$year_obs %in% (years+j),]
 
   if(nrow(obs_filtered[obs_filtered$occurrence,]) > 25) {
@@ -69,14 +73,20 @@ for(j in 0:(year_end-years[length(years)])) {
                                     explanaMesh = explana, 
                                     family = "binomial",
                                     link = "logit", 
-                                    control.compute = list(waic = TRUE),
+                                    control.compute = list(waic = TRUE,
+							   openmp.strategy="huge"),
                                     num.threads = num_threads,
                                     control.inla=list(int.strategy="ccd"), # with ccd or eb, seems less costly in RAM...
-                                    prior.range = c(100, 0.05),
+                                    prior.range = c(100, 0.01),
                                     prior.sigma = c(0.1, 0.01),
                                     verbose = TRUE)
+        
+#       prange <- unlist(summary(mod)$spaceCoefficients["Range", c("mean"), drop = T], use.names=F)
+#	psigma <- unlist(summary(mod)$spaceCoefficients["Stdev", c("mean"), drop = T], use.names=F)
 
         saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
+        rm(mod)
+	rm(obs_filtered)
       },
       error=function(cond) {
         cat(paste0("Error ", folder, " for year ", year, ": ", cond), 
