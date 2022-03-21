@@ -41,6 +41,18 @@ t2=0.55
 
 
 # Make map(entire zone + qc) and compute AUC
+$(maps): $(run_maps) $(sdms) 
+        @Rscript $< $(proj) $@
+
+maps: $(maps)
+
+# Run SDMs for every species
+$(sdms): $(run_sdm)
+        @Rscript $< $@ $(year_start) $(year_end) $(window) $(num_threads)
+
+models: $(sdms)
+
+# Make map(entire zone + qc) and compute AUC
 $(maps): $(run_maps_gam) 
 	@Rscript $< $@
 
