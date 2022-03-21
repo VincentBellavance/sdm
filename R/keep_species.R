@@ -8,7 +8,7 @@
 
 keep_species <- function(obs, species) {
 
-  sp_code <- get_sp_code(species)
+  sp_code <- get_sp_code(species, con)
 
   if(!is.null(sp_code)) {
     species_info <- ebird_scraping(sp_code)
