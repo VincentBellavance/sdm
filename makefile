@@ -6,7 +6,7 @@ get_species=analysis/species.R
 ## Get species occurrences
 get_occ=analysis/obs.R
 ## Analysis
-run_sdm=analysis/run_sdm.R
+run_sdm=analysis/run_sdm_inla.R
 run_sdm_gam=analysis/run_sdm_gam.R
 ## Make map(entire zone + qc)
 run_maps=analysis/run_maps.R
