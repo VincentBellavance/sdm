@@ -17,7 +17,7 @@ args = commandArgs(trailingOnly=TRUE)
 suppressMessages(library(mapSpecies))
 
 # Set variables
-species <- gsub("output/models/", "", args[1])
+species <- gsub("output/models/inla/", "", args[1])
 obs <- readRDS(paste0("occurrences/", species, ".rds"))
 species <- gsub("_", " ", species)
 species <- stringr::str_to_sentence(species)
@@ -43,8 +43,8 @@ species <- species_list[[which(which_species)]]
 # Models species
 # Species name as a folders
 folder <- tolower(gsub(" ", "_", species$accepted))
-dir.create(paste0("output/models/", folder))
-dir.create(paste0("output/log/", folder))
+dir.create(paste0("output/models/inla/", folder))
+dir.create(paste0("output/log/inla/", folder))
 
 #--- Make models ---#
 # First time window
@@ -84,15 +84,15 @@ for(j in 0:(year_end-years[length(years)])) {
 #       prange <- unlist(summary(mod)$spaceCoefficients["Range", c("mean"), drop = T], use.names=F)
 #	psigma <- unlist(summary(mod)$spaceCoefficients["Stdev", c("mean"), drop = T], use.names=F)
 
-        saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
+        saveRDS(mod, paste0("output/models/inla/",folder,"/",year,".rds"))
         rm(mod)
 	rm(obs_filtered)
       },
       error=function(cond) {
         cat(paste0("Error ", folder, " for year ", year, ": ", cond), 
             sep = "\n\n", 
-            file = paste0("output/log/", folder, "/log"), 
-            append = file.exists(paste0("output/log/", folder, "/log")))
+            file = paste0("output/log/inla/", folder, "/log"), 
+            append = file.exists(paste0("output/log/inla/", folder, "/log")))
       }
     )
   }

@@ -20,9 +20,9 @@ explana=data/explana.rds
 mesh=data/mesh.rds
 rast=data/rast*
 ## SDMs targets (multiple targets - one by species)
-sdms=$(addprefix output/models/, $(species))
+sdms=$(addprefix output/models/inla/, $(species))
 ## Make map(entire zone + qc)
-maps=$(addprefix output/maps/, $(species))
+maps=$(addprefix output/maps/inla/, $(species))
 ## Compute AUC
 auc=$(addprefix output/auc/, $(species))
 ## Occurrences
@@ -31,38 +31,38 @@ occ=$(addsuffix .rds, $(addprefix occurrences/, $(species)))
 # Arguments
 res=10
 proj='+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NAD83 +units=km +no_defs +ellps=GRS80 +towgs84=0,0,0'
-year_start=1990
-year_end=2020
+year_start=2013
+year_end=2017
 window=5
 buffer=21
-num_threads=8
+num_threads=$(cpu_task)
 t1=0.05
 t2=0.55
 
 
 # Make map(entire zone + qc) and compute AUC
 $(maps): $(run_maps) $(sdms) 
-        @Rscript $< $(proj) $@
+	@Rscript $< $(proj) $@
 
 maps: $(maps)
 
 # Run SDMs for every species
 $(sdms): $(run_sdm)
-        @Rscript $< $@ $(year_start) $(year_end) $(window) $(num_threads)
+	@Rscript $< $@ $(year_start) $(year_end) $(window) $(num_threads)
 
 models: $(sdms)
 
 # Make map(entire zone + qc) and compute AUC
-$(maps): $(run_maps_gam) 
-	@Rscript $< $@
+#$(maps): $(run_maps_gam)
+#	@Rscript $< $@
 
-maps_gam: $(maps)
+#maps_gam: $(maps)
 
 # Run SDMs for every species
-$(sdms): $(run_sdm_gam)
-	@Rscript $< $@ $(year_start) $(year_end) $(window)
+#$(sdms): $(run_sdm_gam)
+#	@Rscript $< $@ $(year_start) $(year_end) $(window)
 
-models_gam: $(sdms)
+#models_gam: $(sdms)
 
 # Make spatial object necessary for the models
 $(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
@@ -83,6 +83,8 @@ out_dir:
 	mkdir output/log
 	mkdir output/maps
 	mkdir output/models
+	mkdir output/models/gam
+	mkdir output/models/inla
 	mkdir occurrences
 
 # Make species objects
