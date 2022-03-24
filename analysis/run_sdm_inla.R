@@ -101,7 +101,7 @@ for(j in 0:(year_end-years[length(years)])) {
 
         # Step 7 - Build stack
         ## Stack for estimation
-        StackEst <- inla.stack(data=list(occurrence = obs[,"occurrence"]),
+        StackEst <- inla.stack(data=list(occurrence = as.data.frame(obs)[,"occurrence"]),
                                A = AEstlist,
                                effects = effectEst,
                                tag="est")
