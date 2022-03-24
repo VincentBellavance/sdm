@@ -121,6 +121,9 @@ for(j in 0:(year_end-years[length(years)])) {
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
                                            openmp.strategy = "huge"),
+                      control.predictor=list(A=inla.stack.A(Stack),
+                                             compute=TRUE, 
+                                             link = 1),
                       num.threads = num_threads,
                       control.inla=list(int.strategy = "ccd"),
                       verbose = TRUE)
