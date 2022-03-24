@@ -115,7 +115,7 @@ for(j in 0:(year_end-years[length(years)])) {
 
 
         # Step 8 - Building the model
-        model <- inla(occurrence ~ 0 + f(i, model = SPDE),
+        model <- inla(occurrence ~ 0 + f(i, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
                       control.family =list(link="logit"),
