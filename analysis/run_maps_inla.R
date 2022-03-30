@@ -36,6 +36,7 @@ mesh <- readRDS("data/mesh.rds")
 dir.create(paste0("output/maps/inla/", species))
 dir.create(paste0("output/maps/inla/", species,"/qc"))
 dir.create(paste0("output/maps/inla/", species,"/region"))
+dir.create(paste0("output/maps/inla/", species,"/region_occ"))
  
 # List all models from the specific species
 models <- list.files(paste0("output/models/inla/", species))
@@ -58,12 +59,12 @@ for(i in 1:length(models)) {
                       sPoly = q,
                       year = years[i])
   
-  plot_map(file = paste0("output/maps/", species,"/region/",years[i],".png"),
+  plot_map(file = paste0("output/maps/inla/", species,"/region/",years[i],".png"),
            map = map_all,
            title = paste0(species,"_",years[i]),
 	         region = q)
 
-  png(paste0("output/maps/", species,"/region/",years[i],"_occ.png"), width = 960, height = 960)
+  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_occ.png"), width = 960, height = 960)
   raster::plot(map_all, 
                zlim = c(0, 1),
                axes = FALSE, 
@@ -80,7 +81,7 @@ for(i in 1:length(models)) {
   map <- terra::mask(map, terra::vect(qc))
   map <- raster::raster(map)
 
-  plot_map(file = paste0("output/maps/", species,"/qc/",years[i],".png"),
+  plot_map(file = paste0("output/maps/inla/", species,"/qc/",years[i],".png"),
            map = map,
            title = paste0(species,"_",years[i]),
            region = qc)
@@ -99,14 +100,14 @@ for(i in 1:length(models)) {
 
   # Save the stack of maps if it's the last year
   if(i == length(models)) {
-    raster::writeRaster(map_stack, paste0("output/maps/", species, "/maps"))
+    raster::writeRaster(map_stack, paste0("output/maps/inla/", species, "/maps"))
   }
 
   cat(paste0(years[i], " done\n"))
 }
 
-make_gif(folder = paste0("output/maps/",species,"/"), region = "region")
-make_gif(folder = paste0("output/maps/",species,"/"), region = "qc")
+make_gif(folder = paste0("output/maps/inla/",species,"/"), region = "region")
+make_gif(folder = paste0("output/maps/inla/",species,"/"), region = "qc")
 
 # Clean
 rm(map_stack)
