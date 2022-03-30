@@ -7,7 +7,7 @@
 #' 
 #' 
 
-make_map <- function(type, mesh, mod, rast, sPoly, year) {
+make_map <- function(type, mesh, mod, rast, sPoly, year, Stack) {
 
   mapBasis <- inla.mesh.projector(mesh,
                                   dims = dim(rast)[2:1],

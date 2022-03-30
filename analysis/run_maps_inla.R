@@ -33,7 +33,7 @@ q <- readRDS("data/spacePoly.rds")
 qc <- readRDS("data/qc_spacePoly.rds")
 rast <- raster::stack("data/rast.gri")
 mesh <- readRDS("data/mesh.rds")
-obs_all <- readRDS("occurrences/",species,".rds")
+obs_all <- readRDS(paste0("occurrences/",species,".rds"))
 
 # Create directories for species
 dir.create(paste0("output/maps/inla/", species))
@@ -51,7 +51,7 @@ years <- as.integer(gsub(".rds", "", models))
 # Loop on models
 for(i in 1:length(models)) {
   
-  obs <- obs_all[obs_all$year_obs %in% (years-2):(years+2),]
+  obs <- obs_all[obs_all$year_obs %in% (years[i]-2):(years[i]+2),]
 
   # Import model
   mod <- readRDS(paste0("output/models/inla/", species, "/", models[i]))
@@ -64,7 +64,8 @@ for(i in 1:length(models)) {
                       mod,
                       rast,
                       sPoly = q,
-                      year = years[i])
+                      year = years[i],
+                      stack)
   
   plot_map(file = paste0("output/maps/inla/", species,"/region/",years[i],".png"),
            map = map_all,
