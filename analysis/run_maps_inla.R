@@ -24,6 +24,7 @@ species <- gsub("output/maps/inla/", "", args[2])
 
 # Import functions
 source("R/plot_map.R")
+source("R/make_map.R")
 source("R/make_gif.R")
 
 # Import spatial objects
