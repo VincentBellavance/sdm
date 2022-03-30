@@ -26,12 +26,14 @@ species <- gsub("output/maps/inla/", "", args[2])
 source("R/plot_map.R")
 source("R/make_map.R")
 source("R/make_gif.R")
+source("R/make_stack.R")
 
 # Import spatial objects
 q <- readRDS("data/spacePoly.rds")
 qc <- readRDS("data/qc_spacePoly.rds")
 rast <- raster::stack("data/rast.gri")
 mesh <- readRDS("data/mesh.rds")
+obs_all <- readRDS("occurrences/",species,".rds")
 
 # Create directories for species
 dir.create(paste0("output/maps/inla/", species))
@@ -48,9 +50,13 @@ years <- as.integer(gsub(".rds", "", models))
 
 # Loop on models
 for(i in 1:length(models)) {
-    
+  
+  obs <- obs_all[obs_all$year_obs %in% (years-2):(years+2),]
+
   # Import model
   mod <- readRDS(paste0("output/models/inla/", species, "/", models[i]))
+
+  stack <- make_stack(mesh,obs)
 
   # Make map for entire sPoly to compute AUC
   map_all <- make_map(type = "mean_all",
@@ -65,16 +71,28 @@ for(i in 1:length(models)) {
            title = paste0(species,"_",years[i]),
 	         region = q)
 
-  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_occ.png"), width = 960, height = 960)
+  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_pres.png"), width = 960, height = 960)
   raster::plot(map_all, 
                zlim = c(0, 1),
                axes = FALSE, 
                box = FALSE, 
                main = paste0(species,"_",years[i]))
-  sp::plot(q, 
+  sp::plot(obs[obs$occurrence == 1,"occurrence"], 
            lwd=0.2, 
            add = TRUE)
   dev.off()
+
+  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_abs.png"), width = 960, height = 960)
+  raster::plot(map_all, 
+               zlim = c(0, 1),
+               axes = FALSE, 
+               box = FALSE, 
+               main = paste0(species,"_",years[i]))
+  sp::plot(obs[obs$occurrence == 0,"occurrence"], 
+           lwd=0.2, 
+           add = TRUE)
+  dev.off()
+
 
 
   # Make map for Qc only
