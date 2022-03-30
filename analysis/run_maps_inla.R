@@ -61,7 +61,19 @@ for(i in 1:length(models)) {
   plot_map(file = paste0("output/maps/", species,"/region/",years[i],".png"),
            map = map_all,
            title = paste0(species,"_",years[i]),
-	   region = q)
+	         region = q)
+
+  png(paste0("output/maps/", species,"/region/",years[i],"_occ.png"), width = 960, height = 960)
+  raster::plot(map_all, 
+               zlim = c(0, 1),
+               axes = FALSE, 
+               box = FALSE, 
+               main = paste0(species,"_",years[i]))
+  sp::plot(q, 
+           lwd=0.2, 
+           add = TRUE)
+  dev.off()
+
 
   # Make map for Qc only
   map <- terra::crop(terra::rast(map_all), terra::vect(qc))
