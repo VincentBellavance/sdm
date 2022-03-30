@@ -9,7 +9,7 @@ get_occ=analysis/obs.R
 run_sdm=analysis/run_sdm_inla.R
 run_sdm_gam=analysis/run_sdm_gam.R
 ## Make map(entire zone + qc)
-run_maps=analysis/run_maps.R
+run_maps=analysis/run_maps_inla.R
 run_maps_gam=analysis/run_maps_gam.R
 
 # Folders
@@ -31,8 +31,8 @@ occ=$(addsuffix .rds, $(addprefix occurrences/, $(species)))
 # Arguments
 res=10
 proj='+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NAD83 +units=km +no_defs +ellps=GRS80 +towgs84=0,0,0'
-year_start=2013
-year_end=2017
+year_start=1990
+year_end=2020
 window=5
 buffer=21
 num_threads=$(cpu_task)
@@ -97,6 +97,6 @@ install:
 
 # Clean
 clean:
-	rm -r output/models/* output/log/*
+	rm -r output/models/inla/* output/log/inla/*
 
 .PHONY: install species occurrences out_dir spatial models_gam maps_gam clean
