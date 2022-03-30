@@ -44,20 +44,19 @@ models <- list.files(paste0("output/models/inla/", species))
 years <- as.integer(gsub(".rds", "", models))
 
 
-
 # Loop on models
 for(i in 1:length(models)) {
     
   # Import model
-  mod <- readRDS(paste0("output/models/", species, "/", models[i]))
+  mod <- readRDS(paste0("output/models/inla/", species, "/", models[i]))
 
   # Make map for entire sPoly to compute AUC
   map_all <- make_map(type = "mean_all",
+                      mesh,
                       mod,
                       rast,
                       sPoly = q,
-                      year = years[i],
-                      proj)
+                      year = years[i])
   
   plot_map(file = paste0("output/maps/", species,"/region/",years[i],".png"),
            map = map_all,
