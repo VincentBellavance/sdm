@@ -1,12 +1,4 @@
-make_stack <- function(mesh, obs) {
-
-        # Step 2 - Define the stochastic partial differential equation object
-        spde <- inla.spde2.pcmatern(mesh=mesh,
-                                    alpha=2,
-                                    prior.range=c(100, 0.01),
-                                    prior.sigma=c(0.5, 0.01))
-
-
+make_stack <- function(mesh, obs, spde) {
         # Step 3 - Index matrix
         field <- inla.spde.make.index("field", n.spde=mesh$n)
 
@@ -36,7 +28,7 @@ make_stack <- function(mesh, obs) {
 
         # Step 7 - Build stack
         ## Stack for estimation
-        StackEst <- inla.stack(data=list(occurrence = as.data.frame(obs)[,"occurrence"]),
+        StackEst <- inla.stack(data=list(occurrence = obs$occurrence),
                                A = AEstlist,
                                effects = effectEst,
                                tag="est")
@@ -48,5 +40,6 @@ make_stack <- function(mesh, obs) {
         ## Organise StackEst and StackPred into a single stack
         Stack <- inla.stack(StackEst,StackPred)
 
-	return(Stack)
+        return(Stack)
 }
+

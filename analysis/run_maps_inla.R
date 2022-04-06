@@ -1,5 +1,3 @@
-# Make maps for all sPoly and for Qc only + compute AUC for different threshold
-
 #--------------------------------------------------------------
 # Steps:
 # 1. Setup environment
@@ -27,6 +25,7 @@ source("R/plot_map.R")
 source("R/make_map.R")
 source("R/make_gif.R")
 source("R/make_stack.R")
+source("R/make_spde.R")
 
 # Import spatial objects
 q <- readRDS("data/spacePoly.rds")
@@ -56,7 +55,8 @@ for(i in 1:length(models)) {
   # Import model
   mod <- readRDS(paste0("output/models/inla/", species, "/", models[i]))
 
-  stack <- make_stack(mesh,obs)
+  spde <- make_spde(mesh)
+  Stack <- make_stack(mesh, obs, spde)
 
   # Make map for entire sPoly to compute AUC
   map_all <- make_map(type = "mean_all",
@@ -65,14 +65,14 @@ for(i in 1:length(models)) {
                       rast,
                       sPoly = q,
                       year = years[i],
-                      stack)
+                      Stack)
   
   plot_map(file = paste0("output/maps/inla/", species,"/region/",years[i],".png"),
            map = map_all,
            title = paste0(species,"_",years[i]),
-	         region = q)
+                 region = q)
 
-  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_pres.png"), width = 960, height = 960)
+  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_pres.png"), width = 1300, height = 1300)
   raster::plot(map_all, 
                zlim = c(0, 1),
                axes = FALSE, 
@@ -83,7 +83,7 @@ for(i in 1:length(models)) {
            add = TRUE)
   dev.off()
 
-  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_abs.png"), width = 960, height = 960)
+  png(paste0("output/maps/inla/", species,"/region_occ/",years[i],"_abs.png"), width = 1300, height = 1300)
   raster::plot(map_all, 
                zlim = c(0, 1),
                axes = FALSE, 
