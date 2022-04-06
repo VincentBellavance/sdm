@@ -6,10 +6,10 @@ get_species=analysis/species.R
 ## Get species occurrences
 get_occ=analysis/obs.R
 ## Analysis
-run_sdm=analysis/run_sdm_inla.R
+run_sdm_inla=analysis/run_sdm_inla.R
 run_sdm_gam=analysis/run_sdm_gam.R
 ## Make map(entire zone + qc)
-run_maps=analysis/run_maps_inla.R
+run_maps_inla=analysis/run_maps_inla.R
 run_maps_gam=analysis/run_maps_gam.R
 
 # Folders
@@ -20,9 +20,11 @@ explana=data/explana.rds
 mesh=data/mesh.rds
 rast=data/rast*
 ## SDMs targets (multiple targets - one by species)
-sdms=$(addprefix output/models/inla/, $(species))
+sdms_inla=$(addprefix output/models/inla/, $(species))
+sdms_gam=$(addprefix output/models/gam/, $(species))
 ## Make map(entire zone + qc)
-maps=$(addprefix output/maps/inla/, $(species))
+maps_inla=$(addprefix output/maps/inla/, $(species))
+maps_gam=$(addprefix output/maps/gam/, $(species))
 ## Compute AUC
 auc=$(addprefix output/auc/, $(species))
 ## Occurrences
@@ -41,28 +43,28 @@ t2=0.55
 
 
 # Make map(entire zone + qc) and compute AUC
-$(maps): $(run_maps) $(sdms) 
+$(maps_inla): $(run_maps_inla) $(sdms_inla) 
 	@Rscript $< $(proj) $@
 
-maps: $(maps)
+maps_inla: $(maps_inla)
 
 # Run SDMs for every species
-$(sdms): $(run_sdm)
+$(sdms_inla): $(run_sdm_inla)
 	@Rscript $< $@ $(year_start) $(year_end) $(window) $(num_threads)
 
-models: $(sdms)
+models_inla: $(sdms_inla)
 
 # Make map(entire zone + qc) and compute AUC
-#$(maps): $(run_maps_gam)
-#	@Rscript $< $@
+$(maps_gam): $(run_maps_gam)
+	@Rscript $< $@
 
-#maps_gam: $(maps)
+maps_gam: $(maps_gam)
 
 # Run SDMs for every species
-#$(sdms): $(run_sdm_gam)
-#	@Rscript $< $@ $(year_start) $(year_end) $(window)
+$(sdms_gam): $(run_sdm_gam)
+	@Rscript $< $@ $(year_start) $(year_end) $(window)
 
-#models_gam: $(sdms)
+models_gam: $(sdms_gam)
 
 # Make spatial object necessary for the models
 $(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
