@@ -20,7 +20,8 @@ suppressMessages(library(raster))
 # Set variables
 #threshold <- seq(args[1], args[2], by = 0.05)
 #proj <- args[3]
-species <- gsub("output/maps/", "", args[1])
+species <- gsub("output/maps/gam/", "", args[1])
+obs_all <- readRDS(paste0("occurrences/",species,".rds"))
 
 # Import functions
 #source("R/calc_auc.R")
@@ -44,15 +45,17 @@ if(!dir.exists("output/auc")) {
 }
 
 # Create directories for species
-dir.create(paste0("output/maps/", species))
-dir.create(paste0("output/maps/", species,"/qc"))
-dir.create(paste0("output/maps/", species,"/region"))
-dir.create(paste0("output/maps/", species,"/qc/png/"))
-dir.create(paste0("output/maps/", species,"/region/png/"))
+dir.create(paste0("output/maps/gam/", species))
+dir.create(paste0("output/maps/gam/", species,"/qc"))
+dir.create(paste0("output/maps/gam/", species,"/region"))
+dir.create(paste0("output/maps/gam/", species,"/region_occ/"))
+dir.create(paste0("output/maps/gam/", species,"/region_abs/"))
+dir.create(paste0("output/maps/gam/", species,"/qc/png/"))
+dir.create(paste0("output/maps/gam/", species,"/region/png/"))
 #dir.create(paste0("output/auc/", species))
   
 # List all models from the specific species
-models <- list.files(paste0("output/models/", species))
+models <- list.files(paste0("output/models/gam/", species))
 
 # List years of the models
 years <- as.integer(gsub(".rds", "", models))
@@ -64,7 +67,8 @@ years <- as.integer(gsub(".rds", "", models))
 for(i in 1:length(models)) {
     
   # Import model
-  mod <- readRDS(paste0("output/models/", species, "/", models[i]))
+  mod <- readRDS(paste0("output/models/gam/", species, "/", models[i]))
+  obs <- obs_all[obs_all$year_obs %in% (years[i]-2):(years[i]+2),]
 
   # Make map for entire sPoly to compute AUC
   map_all <- make_map_gam(mod, rast)
@@ -85,14 +89,36 @@ for(i in 1:length(models)) {
   names(map) <- paste0("qc_", years[i])
   raster::crs(map) <- raster::crs(rast)
   
-  plot_map(paste0("output/maps/", species, "/qc/png/",years[i],".png"),
+  plot_map(paste0("output/maps/gam/", species, "/qc/png/",years[i],".png"),
            map,
            paste0(species,"_", years[i]),
            qc)
-  plot_map(paste0("output/maps/", species, "/region/png/",years[i],".png"),
+  plot_map(paste0("output/maps/gam/", species, "/region/png/",years[i],".png"),
            map_all,
            paste0(species,"_", years[i]),
            q)
+  png(paste0("output/maps/gam/", species,"/region_occ/",years[i],"_pres.png"), width = 1300, height = 1300)
+  raster::plot(map_all, 
+               zlim = c(0, 1),
+               axes = FALSE, 
+               box = FALSE, 
+               main = paste0(species,"_",years[i]))
+  sp::plot(obs[obs$occurrence == 1,"occurrence"], 
+           lwd=0.2, 
+           add = TRUE)
+  dev.off()
+
+  png(paste0("output/maps/gam/", species,"/region_abs/",years[i],"_abs.png"), width = 1300, height = 1300)
+  raster::plot(map_all, 
+               zlim = c(0, 1),
+               axes = FALSE, 
+               box = FALSE, 
+               main = paste0(species,"_",years[i]))
+  sp::plot(obs[obs$occurrence == 0,"occurrence"], 
+           lwd=0.2, 
+           add = TRUE)
+  dev.off()
+  
 
   # Create stack if it doesn't exist, else stack the map to the existing one
   if(exists("region_stack")) {
@@ -115,12 +141,14 @@ for(i in 1:length(models)) {
   #  saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
 
     # Save maps
-    raster::writeRaster(region_stack, paste0("output/maps/", species, "/qc/maps"))
-    raster::writeRaster(qc_stack, paste0("output/maps/", species, "/region/maps"))
+    raster::writeRaster(region_stack, paste0("output/maps/gam/", species, "/qc/maps"))
+    raster::writeRaster(qc_stack, paste0("output/maps/gam/", species, "/region/maps"))
   }
 
   cat(paste0(years[i], " done\n"))
 }
 
-make_gif(paste0("output/maps/", species, "/qc"))
-make_gif(paste0("output/maps/", species, "/region"))
+make_gif(paste0("output/maps/gam/", species, "/qc"))
+make_gif(paste0("output/maps/gam/", species, "/region"))
+make_gif(paste0("output/maps/gam/", species, "/region_occ"))
+make_gif(paste0("output/maps/gam/", species, "/region_abs"))
