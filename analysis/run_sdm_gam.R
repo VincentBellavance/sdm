@@ -17,7 +17,7 @@ args = commandArgs(trailingOnly=TRUE)
 suppressMessages(library(mgcv))
 
 # Set variables
-species <- gsub("output/models/", "", args[1])
+species <- gsub("output/models/gam/", "", args[1])
 obs <- readRDS(paste0("occurrences/", species, ".rds"))
 species <- gsub("_", " ", species)
 species <- stringr::str_to_sentence(species)
@@ -34,8 +34,8 @@ species <- species_list[[which(which_species)]]
 # Models species
 # Species name as a folders
 folder <- tolower(gsub(" ", "_", species$accepted))
-dir.create(paste0("output/models/", folder))
-dir.create(paste0("output/log/", folder))
+dir.create(paste0("output/models/gam", folder))
+dir.create(paste0("output/log/gam", folder))
 
 #--- Make models ---#
 # First time window
@@ -55,7 +55,7 @@ for(j in 0:(year_end-years[length(years)])) {
     ## Make model and pray that it makes sense
     tryCatch(
       expr = {
-        mod <- mgcv::gam(occurrence ~ s(lon, lat, k = 2), data = obs_filtered, family = "binomial", method = "REML")
+        mod <- mgcv::gam(occurrence ~ s(lon, lat, k = 5), data = obs_filtered, family = "binomial", method = "REML")
 
         saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
       },

@@ -34,24 +34,12 @@ q <- readRDS("data/spacePoly.rds")
 qc <- readRDS("data/qc_spacePoly.rds")
 rast <- raster::stack("data/rast.gri")
 
-# Create output/maps directory if it doesn't exist
-if(!dir.exists("output/maps")) {
-  dir.create("output/maps")
-}
-
-# Create output/auc directory if it doesn't exist
-if(!dir.exists("output/auc")) {
-  dir.create("output/auc")
-}
-
 # Create directories for species
 dir.create(paste0("output/maps/gam/", species))
-dir.create(paste0("output/maps/gam/", species,"/qc"))
-dir.create(paste0("output/maps/gam/", species,"/region"))
+dir.create(paste0("output/maps/gam/", species,"/qc/"))
+dir.create(paste0("output/maps/gam/", species,"/region/"))
 dir.create(paste0("output/maps/gam/", species,"/region_occ/"))
 dir.create(paste0("output/maps/gam/", species,"/region_abs/"))
-dir.create(paste0("output/maps/gam/", species,"/qc/png/"))
-dir.create(paste0("output/maps/gam/", species,"/region/png/"))
 #dir.create(paste0("output/auc/", species))
   
 # List all models from the specific species
@@ -89,11 +77,11 @@ for(i in 1:length(models)) {
   names(map) <- paste0("qc_", years[i])
   raster::crs(map) <- raster::crs(rast)
   
-  plot_map(paste0("output/maps/gam/", species, "/qc/png/",years[i],".png"),
+  plot_map(paste0("output/maps/gam/", species, "/qc/",years[i],".png"),
            map,
            paste0(species,"_", years[i]),
            qc)
-  plot_map(paste0("output/maps/gam/", species, "/region/png/",years[i],".png"),
+  plot_map(paste0("output/maps/gam/", species, "/region/",years[i],".png"),
            map_all,
            paste0(species,"_", years[i]),
            q)
@@ -148,7 +136,7 @@ for(i in 1:length(models)) {
   cat(paste0(years[i], " done\n"))
 }
 
-make_gif(paste0("output/maps/gam/", species, "/qc"))
-make_gif(paste0("output/maps/gam/", species, "/region"))
-make_gif(paste0("output/maps/gam/", species, "/region_occ"))
-make_gif(paste0("output/maps/gam/", species, "/region_abs"))
+make_gif(paste0("output/maps/gam/", species, "/"), "qc")
+make_gif(paste0("output/maps/gam/", species, "/"), "region")
+make_gif(paste0("output/maps/gam/", species, "/"), "region_occ")
+make_gif(paste0("output/maps/gam/", species, "/"), "region_abs")
