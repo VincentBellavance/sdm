@@ -129,8 +129,7 @@ for(i in 1:length(models)) {
   #  saveRDS(auc, paste0("output/auc/", species, "/auc.rds"))
 
     # Save maps
-    raster::writeRaster(region_stack, paste0("output/maps/gam/", species, "/qc/maps"))
-    raster::writeRaster(qc_stack, paste0("output/maps/gam/", species, "/region/maps"))
+    raster::writeRaster(region_stack, paste0("output/maps/gam/", species, "/maps"))
   }
 
   cat(paste0(years[i], " done\n"))
