@@ -128,6 +128,8 @@ for(i in 1:length(models)) {
 
 make_gif(folder = paste0("output/maps/inla/",species,"/"), region = "region")
 make_gif(folder = paste0("output/maps/inla/",species,"/"), region = "qc")
+make_gif(paste0("output/maps/inla/", species, "/"), "region_occ")
+make_gif(paste0("output/maps/inla/", species, "/"), "region_abs")
 
 # Clean
 rm(map_stack)
