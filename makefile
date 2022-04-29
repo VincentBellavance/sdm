@@ -1,6 +1,6 @@
 # SDMs workflow
-## Make spatial object necessary for the models
-run_spat_data=analysis/run_spat_data.R
+## Make species specific spatial objects necessaries
+run_study_extent=analysis/make_study_extent.R
 ## Get species names
 get_species=analysis/species.R
 ## Get species occurrences
@@ -13,12 +13,11 @@ run_maps_inla=analysis/run_maps_inla.R
 run_maps_gam=analysis/run_maps_gam.R
 
 # Folders
-## Make spatial object necessary for the models
-spacePoly=data/spacePoly.rds
-qc=data/qc_spacePoly.rds
-explana=data/explana.rds
-mesh=data/mesh.rds
-rast=data/rast*
+## Species specific spatial objects
+study_extent=$(addsuffix /study_extent.rds, $(addprefix output/spatial/, $(species)))
+mesh=$(addsuffix /mesh.rds, $(addprefix output/spatial/, $(species)))
+rast=$(addsuffix /rast.gri, $(addprefix output/spatial/, $(species)))
+filtered_obs=$(addsuffix /obs.rds, $(addprefix output/spatial/, $(species)))
 ## SDMs targets (multiple targets - one by species)
 sdms_inla=$(addprefix output/models/inla/, $(species))
 sdms_gam=$(addprefix output/models/gam/, $(species))
@@ -36,7 +35,9 @@ proj='+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NA
 year_start=1990
 year_end=2020
 window=5
-buffer=21
+time_buffer=21
+spat_buffer=300
+pedge=0.025
 num_threads=$(cpu_task)
 t1=0.05
 t2=0.55
@@ -67,27 +68,26 @@ $(sdms_gam): $(run_sdm_gam)
 models_gam: $(sdms_gam)
 
 # Make spatial object necessary for the models
-$(spacePoly) $(qc) $(explana) $(mesh) $(rast): $(run_spat_data)
-	@Rscript $< $(res) $(proj)
+$(study_extent) $(mesh) $(rast) $(filtered_obs): $(run_study_extent)
+	@Rscript $< $(species) $(spat_buffer) $(pedge)
 
-spatial: $(spacePoly) $(qc) $(explana) $(mesh) $(rast)
+spatial: $(study_extent) $(mesh) $(rast) $(filtered_obs)
+
+# Make output folder
+out_dir: 
+	mkdir output
+	mkdir output/check
+	mkdir output/log
+	mkdir output/maps
+	mkdir output/models
+	mkdir output/spatial
+	mkdir occurrences
 
 # Get species occurrences
 $(occ): $(get_occ)
 	@Rscript $< $@ $(year_start) $(year_end) $(window) $(buffer) $(proj)
 
 occurrences: $(occ)
-
-# Make output folder
-out_dir: 
-	mkdir output
-	mkdir output/auc
-	mkdir output/log
-	mkdir output/maps
-	mkdir output/models
-	mkdir output/models/gam
-	mkdir output/models/inla
-	mkdir occurrences
 
 # Make species objects
 species: $(get_species)
@@ -99,6 +99,6 @@ install:
 
 # Clean
 clean:
-	rm -r output/models/inla/* output/log/inla/*
+	rm -r output/models/* output/log/* output/maps/*
 
 .PHONY: install species occurrences out_dir spatial models_gam maps_gam clean

@@ -12,7 +12,7 @@ args = commandArgs(trailingOnly=TRUE)
 suppressMessages(library(raster))
 
 # Set variables
-species <- gsub("output/models/", "", args[1])
+species <- args[1]
 q <- readRDS("data/spacePoly.rds")
 obs <- readRDS(paste0("occurrences/",species,".rds"))
 dist_buffer <- args[2]
@@ -48,7 +48,7 @@ raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
 raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 
 # Make mesh
-pedge <- 0.025
+pedge <- args[3]
 edge <- min(c(diff(raster::bbox(q)[1,])*pedge,diff(raster::bbox(q)[2,])*pedge))
 mesh <- INLA::inla.mesh.2d(boundary = study_extent,
                            max.edge = c(edge, edge*4.5), 
