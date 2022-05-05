@@ -15,7 +15,7 @@ suppressMessages(library(raster))
 species <- args[1]
 q <- readRDS("data/spacePoly.rds")
 obs <- readRDS(paste0("occurrences/",species,".rds"))
-dist_buffer <- args[2]
+dist_buffer <- as.integer(args[2])
 
 # Make directory to store new spatial object
 spat_folder <- paste0("output/spatial/",species,"/")
@@ -48,10 +48,10 @@ raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
 raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 
 # Make mesh
-pedge <- args[3]
-edge <- min(c(diff(raster::bbox(q)[1,])*pedge,diff(raster::bbox(q)[2,])*pedge))
+pedge <- as.integer(args[3])
+edge <- min(c(diff(raster::bbox(study_extent)[1,])*pedge,diff(raster::bbox(study_extent)[2,])*pedge))
 mesh <- INLA::inla.mesh.2d(boundary = study_extent,
-                           max.edge = c(edge, edge*4.5), 
+                           max.edge = c(edge, edge*5), 
                            min.angle = 21,
                            offset = c(edge, edge*2), 
                            cutoff = edge/2, 

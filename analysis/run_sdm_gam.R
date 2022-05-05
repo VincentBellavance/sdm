@@ -34,8 +34,8 @@ species <- species_list[[which(which_species)]]
 # Models species
 # Species name as a folders
 folder <- tolower(gsub(" ", "_", species$accepted))
-dir.create(paste0("output/models/gam", folder))
-dir.create(paste0("output/log/gam", folder))
+dir.create(paste0("output/models/gam/", folder))
+dir.create(paste0("output/log/gam/", folder))
 
 #--- Make models ---#
 # First time window
@@ -55,15 +55,15 @@ for(j in 0:(year_end-years[length(years)])) {
     ## Make model and pray that it makes sense
     tryCatch(
       expr = {
-        mod <- mgcv::gam(occurrence ~ s(lon, lat, k = 5), data = obs_filtered, family = "binomial", method = "REML")
+        mod <- mgcv::gam(occurrence ~ s(lon, lat, k = 15), data = obs_filtered, family = "binomial", method = "REML")
 
-        saveRDS(mod, paste0("output/models/",folder,"/",year,".rds"))
+        saveRDS(mod, paste0("output/models/gam/",folder,"/",year,".rds"))
       },
       error=function(cond) {
         cat(paste0("Error ", folder, " for year ", year, ": ", cond), 
             sep = "\n\n", 
-            file = paste0("output/log/", folder, "/log"), 
-            append = file.exists(paste0("output/log/", folder, "/log")))
+            file = paste0("output/log/gam/", folder, "/log"), 
+            append = file.exists(paste0("output/log/gam/", folder, "/log")))
       }
     )
   }
