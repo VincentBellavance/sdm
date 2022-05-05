@@ -6,11 +6,9 @@ get_species=analysis/species.R
 ## Get species occurrences
 get_occ=analysis/obs.R
 ## Analysis
-run_sdm_inla=analysis/run_sdm_inla.R
-run_sdm_gam=analysis/run_sdm_gam.R
+run_sdms=analysis/run_sdm_inla.R
 ## Make map(entire zone + qc)
-run_maps_inla=analysis/run_maps_inla.R
-run_maps_gam=analysis/run_maps_gam.R
+run_maps=analysis/run_maps_inla.R
 
 # Folders
 ## Species specific spatial objects
@@ -19,13 +17,9 @@ mesh=$(addsuffix /mesh.rds, $(addprefix output/spatial/, $(species)))
 rast=$(addsuffix /rast.gri, $(addprefix output/spatial/, $(species)))
 filtered_obs=$(addsuffix /obs.rds, $(addprefix output/spatial/, $(species)))
 ## SDMs targets (multiple targets - one by species)
-sdms_inla=$(addprefix output/models/inla/, $(species))
-sdms_gam=$(addprefix output/models/gam/, $(species))
+sdms=$(addprefix output/models/, $(species))
 ## Make map(entire zone + qc)
-maps_inla=$(addprefix output/maps/inla/, $(species))
-maps_gam=$(addprefix output/maps/gam/, $(species))
-## Compute AUC
-auc=$(addprefix output/auc/, $(species))
+maps=$(addprefix output/maps/, $(species))
 ## Occurrences
 occ=$(addsuffix .rds, $(addprefix occurrences/, $(species)))
 
@@ -44,28 +38,16 @@ t2=0.55
 
 
 # Make map(entire zone + qc) and compute AUC
-$(maps_inla): $(run_maps_inla) $(sdms_inla) 
-	@Rscript $< $(proj) $@
+$(maps): $(run_maps) $(sdms) 
+	@Rscript $< $(species) $(proj)
 
-maps_inla: $(maps_inla)
-
-# Run SDMs for every species
-$(sdms_inla): $(run_sdm_inla)
-	@Rscript $< $@ $(year_start) $(year_end) $(window) $(num_threads)
-
-models_inla: $(sdms_inla)
-
-# Make map(entire zone + qc) and compute AUC
-$(maps_gam): $(run_maps_gam)
-	@Rscript $< $@
-
-maps_gam: $(maps_gam)
+maps: $(maps)
 
 # Run SDMs for every species
-$(sdms_gam): $(run_sdm_gam)
-	@Rscript $< $@ $(year_start) $(year_end) $(window)
+$(sdms): $(run_sdms)
+	@Rscript $< $(species) $(year_start) $(year_end) $(window) $(num_threads)
 
-models_gam: $(sdms_gam)
+models: $(sdms)
 
 # Make spatial object necessary for the models
 $(study_extent) $(mesh) $(rast) $(filtered_obs): $(run_study_extent)
@@ -81,11 +63,12 @@ out_dir:
 	mkdir output/maps
 	mkdir output/models
 	mkdir output/spatial
+	mkdir output/stack
 	mkdir occurrences
 
 # Get species occurrences
 $(occ): $(get_occ)
-	@Rscript $< $@ $(year_start) $(year_end) $(window) $(buffer) $(proj)
+	@Rscript $< $@ $(year_start) $(year_end) $(window) $(time_buffer) $(proj)
 
 occurrences: $(occ)
 
@@ -101,4 +84,4 @@ install:
 clean:
 	rm -r output/models/* output/log/* output/maps/*
 
-.PHONY: install species occurrences out_dir spatial models_gam maps_gam clean
+.PHONY: models maps install species occurrences out_dir spatial clean
