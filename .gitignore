@@ -3,5 +3,7 @@ data/*
 *.rds
 *.csv
 !placeholder
-occurrences/*
+occurrences
 tmp_occ
+tests
+garbage

@@ -4,8 +4,12 @@ make_stack <- function(mesh, obs, spde) {
 
 
         # Step 4 - A matrix
-        xy <- as.matrix(cbind(obs$lon, obs$lat))
-        colnames(xy) <- c("x", "y")
+	if("x" %in% colnames(as.data.frame(obs_all))){
+	  xy <- as.matrix(cbind(obs$x, obs$y))
+        } else {
+	  xy <- as.matrix(cbind(obs$lon, obs$lat))
+	}
+	colnames(xy) <- c("x", "y")
         ## For estimation
         AEst <- inla.spde.make.A(mesh, loc=xy)
         ## For prediction
