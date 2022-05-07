@@ -19,6 +19,7 @@ suppressMessages(library(raster))
 
 # Set variables
 species <- args[1]
+source("R/path.R")
 obs_all <- readRDS(paste0("output/spatial/",species, "/obs.rds"))
 year_start <- as.integer(args[2])
 year_end <- as.integer(args[3])

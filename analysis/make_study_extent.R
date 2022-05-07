@@ -13,6 +13,7 @@ suppressMessages(library(raster))
 
 # Set variables
 species <- args[1]
+source("R/path.R")
 q <- readRDS("data/spacePoly.rds")
 obs <- readRDS(path_sp(species)$occ)
 dist_buffer <- as.integer(args[2])
