@@ -6,7 +6,7 @@
 #'
 #' @return
 
-path <- function(species=NULL) {
+path <- function() {
   list(
     spat="output/spatial/",
     mod="output/models/",
@@ -30,12 +30,12 @@ path <- function(species=NULL) {
 path_sp <- function(species) {
   list(
     occ=paste0("occurrences/", species, ".rds"),
-    spat=paste0(path$spat, species),
-    mod=paste0(path$mod, species),
-    log=paste0(path$log, species),
-    stack=paste0(path$stack, species),
-    check=paste0(path$check, species),
-    maps=paste0(path$maps, species)
+    spat=paste0(path()$spat, species),
+    mod=paste0(path()$mod, species),
+    log=paste0(path()$log, species),
+    stack=paste0(path()$stack, species),
+    check=paste0(path()$check, species),
+    maps=paste0(path()$maps, species)
   )
 }
 
