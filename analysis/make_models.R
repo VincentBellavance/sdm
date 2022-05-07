@@ -19,7 +19,6 @@ suppressMessages(library(raster))
 
 # Set variables
 species <- args[1]
-spat_folder <- paste0("output/spatial/",species,"/")
 obs_all <- readRDS(paste0("output/spatial/",species, "/obs.rds"))
 year_start <- as.integer(args[2])
 year_end <- as.integer(args[3])
@@ -28,21 +27,17 @@ num_threads <- as.integer(args[5])
 
 #--- Continue setup ---#
 # Import spatial objects to make models
-q <- readRDS(paste0(spat_folder,"study_extent.rds"))
+q <- readRDS(paste0(path_sp(species)$spat,"/study_extent.rds"))
 qc <- readRDS("data/qc_spacePoly.rds")
-mesh <- readRDS(paste0("output/spatial/",species,"/mesh.rds"))
+mesh <- readRDS(paste0(path_sp(species)$spat,"/mesh.rds"))
 
 source("R/make_spde.R")
-
 source("R/make_stack.R")
 
 # Species name as a folders
-mod_folder <- paste0("output/models/", species)
-log_folder <- paste0("output/log/", species)
-stack_folder <- paste0("output/stack/", species)
-dir.create(mod_folder)
-dir.create(log_folder)
-dir.create(stack_folder)
+dir.create(path_sp(species)$mod)
+dir.create(path_sp(species)$log)
+dir.create(path_sp(species)$stack)
 
 #--- Make models ---#
 # First time window
@@ -99,17 +94,19 @@ for(j in 0:(year_end-years[length(years)])) {
                       debug = TRUE)
         }
 
-        saveRDS(model, paste0(mod_folder,"/",year,".rds"))
-        saveRDS(Stack, paste0(stack_folder,"/",year,".rds"))
+        saveRDS(model, paste0(path_sp(species)$mod,"/",year,".rds"))
+        saveRDS(Stack, paste0(path_sp(species)$stack,"/",year,".rds"))
         previous_model <- model
         rm(model)
         rm(obs)
+        rm(spde)
+        rm(Stack)
       },
       error=function(cond) {
         cat(paste0("Error ", species, " for year ", year, ": ", cond), 
             sep = "\n\n", 
-            file = paste0(log_folder, "/log"), 
-            append = file.exists(paste0(log_folder, "/log")))
+            file = paste0(path_sp(species)$log, "/log"), 
+            append = file.exists(paste0(path_sp(species)$log, "/log")))
       }
     )
   }
