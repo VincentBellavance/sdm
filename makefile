@@ -6,7 +6,7 @@ get_species=analysis/species.R
 ## Get species occurrences
 get_occ=analysis/obs.R
 ## Analysis
-run_sdms=analysis/run_sdm_inla.R
+run_sdms=analysis/make_models.R
 ## Make map(entire zone + qc)
 run_maps=analysis/run_maps_inla.R
 
@@ -31,7 +31,7 @@ year_end=2020
 window=5
 time_buffer=21
 spat_buffer=300
-pedge=0.035
+pedge=0.03
 num_threads=$(cpu_task)
 t1=0.05
 t2=0.55

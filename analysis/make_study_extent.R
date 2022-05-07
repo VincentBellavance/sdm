@@ -48,7 +48,7 @@ raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
 raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 
 # Make mesh
-pedge <- as.integer(args[3])
+pedge <- as.numeric(args[3])
 edge <- min(c(diff(raster::bbox(study_extent)[1,])*pedge,diff(raster::bbox(study_extent)[2,])*pedge))
 mesh <- INLA::inla.mesh.2d(boundary = study_extent,
                            max.edge = c(edge, edge*5), 

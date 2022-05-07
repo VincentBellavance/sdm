@@ -21,17 +21,19 @@ suppressMessages(library(raster))
 species <- args[1]
 spat_folder <- paste0("output/spatial/",species,"/")
 obs_all <- readRDS(paste0("output/spatial/",species, "/obs.rds"))
-year_start <- args[2]
-year_end <- args[3]
-window_width <- args[4]
-num_threads <- args[5]
+year_start <- as.integer(args[2])
+year_end <- as.integer(args[3])
+window_width <- as.integer(args[4])
+num_threads <- as.integer(args[5])
 
 #--- Continue setup ---#
 # Import spatial objects to make models
 q <- readRDS(paste0(spat_folder,"study_extent.rds"))
 qc <- readRDS("data/qc_spacePoly.rds")
+mesh <- readRDS(paste0("output/spatial/",species,"/mesh.rds"))
 
 source("R/make_spde.R")
+
 source("R/make_stack.R")
 
 # Species name as a folders
