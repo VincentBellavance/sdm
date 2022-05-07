@@ -14,12 +14,13 @@ suppressMessages(library(raster))
 # Set variables
 species <- args[1]
 q <- readRDS("data/spacePoly.rds")
-obs <- readRDS(paste0("occurrences/",species,".rds"))
+obs <- readRDS(path_sp(species)$occ)
 dist_buffer <- as.integer(args[2])
 
 # Make directory to store new spatial object
-spat_folder <- paste0("output/spatial/",species,"/")
-dir.create(spat_folder)
+if(!exists(path_sp(species)$spat)) {
+  dir.create(path_sp(species)$spat)
+}
 
 # Filter for presence only to define the polygon
 obs_pres <- obs[obs$occurrence == 1,]
@@ -62,7 +63,7 @@ raster <- raster::raster("data/rast.gri")
 raster <- raster::crop(raster, study_extent)
 
 # Save all four objects
-raster::writeRaster(raster, paste0(spat_folder,"rast"))
-saveRDS(mesh, paste0(spat_folder,"mesh.rds"))
-saveRDS(obs, paste0(spat_folder,"obs.rds"))
-saveRDS(study_extent, paste0(spat_folder,"study_extent.rds"))
+raster::writeRaster(raster, paste0(path_sp(species)$spat,"rast"))
+saveRDS(mesh, paste0(path_sp(species)$spat,"mesh.rds"))
+saveRDS(obs, paste0(path_sp(species)$spat,"obs.rds"))
+saveRDS(study_extent, paste0(path_sp(species)$spat,"study_extent.rds"))
