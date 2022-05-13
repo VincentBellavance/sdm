@@ -64,7 +64,8 @@ raster <- raster::raster("data/rast.gri")
 raster <- raster::crop(raster, study_extent)
 
 # Save all four objects
-raster::writeRaster(raster, paste0(path_sp(species)$spat,"rast"))
-saveRDS(mesh, paste0(path_sp(species)$spat,"mesh.rds"))
-saveRDS(obs, paste0(path_sp(species)$spat,"obs.rds"))
-saveRDS(study_extent, paste0(path_sp(species)$spat,"study_extent.rds"))
+raster::writeRaster(raster, paste0(path_sp(species)$spat,"/rast"))
+saveRDS(mesh, paste0(path_sp(species)$spat,"/mesh.rds"))
+saveRDS(obs, paste0(path_sp(species)$spat,"/obs.rds"))
+saveRDS(study_extent, paste0(path_sp(species)$spat,"/study_extent.rds"))
+
