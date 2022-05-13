@@ -52,6 +52,6 @@ path_maps <- function(species, maps_dir = path()$maps) {
     qc = paste0(path_sp(species)$maps, "/qc"),
     region = paste0(path_sp(species)$maps, "/region"),
     region_pres = paste0(path_sp(species)$maps, "/region_pres"),
-    region_abs = paste0(path_sp(species)$maps, "/region_abs"),
+    region_abs = paste0(path_sp(species)$maps, "/region_abs")
   ) 
 }
