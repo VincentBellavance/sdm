@@ -62,7 +62,7 @@ for(i in 1:length(models)) {
                       mesh,
                       mod,
                       rast,
-                      sPoly = q,
+                      sPoly = study_extent,
                       year = years[i],
                       Stack)
   
@@ -70,21 +70,21 @@ for(i in 1:length(models)) {
 			                 mesh,
 			                 mod,
 			                 rast,
-			                 sPoly = q,
+			                 sPoly = study_extent,
 			                 year = years[i],
 			                 Stack) 
   map_0975 <- make_map(type = "0.975quant",
                        mesh,
                        mod, 
                        rast,
-                       sPoly = q,
+                       sPoly = study_extent,
                        year = years[i],
                        Stack)  
 
   plot_map(file = paste0(path_maps(species)$region,"/",years[i],".png"),
            map = map_all,
            title = paste0(species,"_",years[i]),
-           region = q)
+           region = study_extent)
 
   png(paste0(path_maps(species)$region_pres,"/",years[i],"_pres.png"), width = 1300, height = 1300)
   raster::plot(map_all, 
