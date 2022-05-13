@@ -55,7 +55,7 @@ for(i in 1:length(models)) {
   # Import model
   mod <- readRDS(paste0(path_sp(species)$mod, "/", models[i]))
 
-  Stack <- readRDS(paste0(path_sp(species)$stack, "/", Stack[i]))
+  Stack <- readRDS(paste0(path_sp(species)$stack, "/", Stacks[i]))
 
   # Make map for entire sPoly to compute AUC
   map_all <- make_map(type = "mean",
@@ -138,6 +138,7 @@ for(i in 1:length(models)) {
   rm(map_0025)
   rm(map_0975)
   rm(mod)
+  rm(Stack)
 
   # Save the stack of maps if it's the last year
   if(i == length(models)) {
