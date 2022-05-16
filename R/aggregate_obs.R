@@ -12,7 +12,7 @@ aggregate_obs <- function(obs, years, i, rast) {
   obs_aggr <- terra::rasterize(terra::vect(obs[obs$year_obs %in% (years+i),]), terra::rast(rast), field = "occurrence", fun = "max")
 
   # From raster to spatialPoints
-  obs_aggr <- as(terra::as.points(obs_aggr, spatial = TRUE), "Spatial")
+  obs_aggr <- as(terra::as.points(obs_aggr), "Spatial")
   names(obs_aggr) <- "occurrence"
 
   # Not sure it's necessary anymore...
