@@ -23,7 +23,7 @@ make_map <- function(type, mesh, mod, rast, sPoly, year, Stack) {
   
   ### Calculate prediction
   mapPred <- inla.mesh.project(mapBasis, 
-                               mod$summary.fitted.values[["mean"]][ID])
+                               mod$summary.fitted.values[[type]][ID])
 
   mapRaster <- raster::raster(t(mapPred[,ncol(mapPred):1]),
                                 xmn = min(mapBasis$x), xmx = max(mapBasis$x), 
