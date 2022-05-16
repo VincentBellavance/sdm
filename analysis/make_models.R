@@ -31,9 +31,11 @@ num_threads <- as.integer(args[5])
 q <- readRDS(paste0(path_sp(species)$spat,"/study_extent.rds"))
 qc <- readRDS("data/qc_spacePoly.rds")
 mesh <- readRDS(paste0(path_sp(species)$spat,"/mesh.rds"))
+rast <- raster::stack(paste0(path_sp(species)$spat,"/rast.gri"))
 
 source("R/make_spde.R")
 source("R/make_stack.R")
+source("R/aggregate_obs.R")
 
 # Species name as a folders
 dir.create(path_sp(species)$mod)
@@ -52,6 +54,7 @@ for(j in 0:(year_end-years[length(years)])) {
 
    ## Filter observations
   obs <- obs_all[obs_all$year_obs %in% (years+j),]
+  obs <- aggregate_obs(obs, years, j, rast)
 
   if(nrow(obs[obs$occurrence,]) > 25) {
     
