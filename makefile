@@ -9,6 +9,8 @@ get_occ=analysis/obs.R
 run_sdms=analysis/make_models.R
 ## Make map(entire zone + qc)
 run_maps=analysis/make_maps.R
+## Run check
+run_checks=analysis/check_models.R
 
 # Folders
 ## Species specific spatial objects
@@ -20,6 +22,8 @@ filtered_obs=$(addsuffix /obs.rds, $(addprefix output/spatial/, $(species)))
 sdms=$(addprefix output/models/, $(species))
 ## Make map(entire zone + qc)
 maps=$(addprefix output/maps/, $(species))
+## Check
+checks=$(addprefix output/check/, $(species))
 ## Occurrences
 occ=$(addsuffix .rds, $(addprefix occurrences/, $(species)))
 
@@ -36,6 +40,11 @@ num_threads=$(cpu_task)
 t1=0.05
 t2=0.55
 
+# Run checks on models
+$(checks): $(run_checks) $(maps)
+	@Rscript $< $(species)
+
+check: $(checks)
 
 # Make map(entire zone + qc) and compute AUC
 $(maps): $(run_maps) $(sdms) 
