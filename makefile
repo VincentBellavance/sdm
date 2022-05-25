@@ -8,7 +8,7 @@ get_occ=analysis/obs.R
 ## Analysis
 run_sdms=analysis/make_models.R
 ## Make map(entire zone + qc)
-run_maps=analysis/run_maps_inla.R
+run_maps=analysis/make_maps.R
 
 # Folders
 ## Species specific spatial objects
