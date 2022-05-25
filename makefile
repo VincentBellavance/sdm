@@ -44,7 +44,7 @@ t2=0.55
 $(checks): $(run_checks) $(maps)
 	@Rscript $< $(species)
 
-check: $(checks)
+checks: $(checks)
 
 # Make map(entire zone + qc) and compute AUC
 $(maps): $(run_maps) $(sdms) 
