@@ -1,31 +1,41 @@
 # SDMs workflow
 ## Make species specific spatial objects necessaries
-run_study_extent=analysis/make_study_extent.R
+make_study_extent=analysis/make_study_extent.R
 ## Get species names
 get_species=analysis/species.R
 ## Get species occurrences
-get_occ=analysis/obs.R
+get_occ=analysis/occ.R
 ## Analysis
-run_sdms=analysis/make_models.R
+make_sdms=analysis/make_models.R
 ## Make map(entire zone + qc)
-run_maps=analysis/make_maps.R
+make_maps=analysis/make_maps.R
 ## Run check
-run_checks=analysis/check_models.R
+check_models=analysis/check_models.R
 
-# Folders
-## Species specific spatial objects
-study_extent=$(addsuffix /study_extent.rds, $(addprefix output/spatial/, $(species)))
-mesh=$(addsuffix /mesh.rds, $(addprefix output/spatial/, $(species)))
-rast=$(addsuffix /rast.gri, $(addprefix output/spatial/, $(species)))
-filtered_obs=$(addsuffix /obs.rds, $(addprefix output/spatial/, $(species)))
-## SDMs targets (multiple targets - one by species)
-sdms=$(addprefix output/models/, $(species))
-## Make map(entire zone + qc)
-maps=$(addprefix output/maps/, $(species))
-## Check
-checks=$(addprefix output/check/, $(species))
+# Data folders
+data_folder=$(data_folder)
 ## Occurrences
-occ=$(addsuffix .rds, $(addprefix occurrences/, $(species)))
+obs_folder=$(addprefix $(data_folder), /occurrences/)
+obs=$(addsuffix .rds, $(addprefix $(obs_folder), $(species)))
+
+# Output folders
+output=$(output_folder)
+output_spatial=	$(addprefix $(output_folder), /spatial)
+output_models=$(addprefix $(output_folder), /models)
+output_maps=$(addprefix $(output_folder), /maps)
+output_stack=$(addprefix $(output_folder), /stack)
+
+## Species specific spatial objects
+study_extent=$(addsuffix /study_extent.rds, $(addprefix $(output_spatial), $(species)))
+mesh=$(addsuffix /mesh.rds, $(addprefix $(output_spatial), $(species)))
+rast=$(addsuffix /rast.gri, $(addprefix $(output_spatial), $(species)))
+filtered_obs=$(addsuffix /obs.rds, $(addprefix $(output_spatial), $(species)))
+## SDMs targets (multiple targets - one by species)
+sdms=$(addprefix $(output_models), $(species))
+## Make map(entire zone + qc)
+maps=$(addprefix $(output_maps), $(species))
+## Check
+checks=$(addprefix $(output_check), $(species))
 
 # Arguments
 res=10
@@ -41,45 +51,45 @@ t1=0.05
 t2=0.55
 
 # Run checks on models
-$(checks): $(run_checks) $(maps)
+$(checks): $(check_models) $(maps)
 	@Rscript $< $(species)
 
 checks: $(checks)
 
 # Make map(entire zone + qc) and compute AUC
-$(maps): $(run_maps) $(sdms) 
+$(maps): $(make_maps) $(sdms) 
 	@Rscript $< $(species) $(proj)
 
 maps: $(maps)
 
 # Run SDMs for every species
-$(sdms): $(run_sdms)
+$(sdms): $(make_sdms)
 	@Rscript $< $(species) $(year_start) $(year_end) $(window) $(num_threads)
 
 models: $(sdms)
 
 # Make spatial object necessary for the models
-$(study_extent) $(mesh) $(rast) $(filtered_obs): $(run_study_extent)
+$(study_extent) $(mesh) $(rast) $(filtered_obs): $(make_study_extent)
 	@Rscript $< $(species) $(spat_buffer) $(pedge)
 
 spatial: $(study_extent) $(mesh) $(rast) $(filtered_obs)
 
 # Make output folder
 out_dir: 
-	mkdir output
-	mkdir output/check
-	mkdir output/log
-	mkdir output/maps
-	mkdir output/models
-	mkdir output/spatial
-	mkdir output/stack
-	mkdir occurrences
+	mkdir $(output_folder)
+	mkdir $(addprefix $(output_folder), /checks)
+	mkdir $(addprefix $(output_folder), /log)
+	mkdir $(output_spatial)
+	mkdir $(output_models)
+	mkdir $(output_maps)
+	mkdir $(output_stack)
+	mkdir $(obs_folder)
 
 # Get species occurrences
-$(occ): $(get_occ)
+$(obs_folder): $(get_obs)
 	@Rscript $< $@ $(year_start) $(year_end) $(window) $(time_buffer) $(proj)
 
-occurrences: $(occ)
+occurrences: $(obs)
 
 # Make species objects
 species: $(get_species)
