@@ -5,7 +5,7 @@
 #SBATCH --mail-user=vincent.bellavance@usherbrooke.ca
 #SBATCH --mail-type=ALL
 #SBATCH --job-name=run_sdm
-#SBATCH --output=out/%a.out
+#SBATCH --output=output/out/%a.out
 #SBATCH --array=1-196
 
 module use /home/belv1601/.local/easybuild/modules/2020/avx2/Compiler/gcc9/

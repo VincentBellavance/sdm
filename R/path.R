@@ -8,13 +8,13 @@
 
 path <- function() {
   list(
-    spat="output/spatial/",
-    mod="output/models/",
-    log="output/log/",
-    stack="output/stack/",
-    check="output/check/",
-    maps="output/maps/",
-    occ="occurrences/"
+    spat="~/scratch/output/spatial/",
+    mod="~/scratch/output/models/",
+    log="~/scratch/output/log/",
+    stack="~/scratch/output/stack/",
+    check="~/scratch/output/check/",
+    maps="~/scratch/output/maps/",
+    occ="~/project/def-dgravel/belv1601/sdm/occurrences/"
   )
 }
 

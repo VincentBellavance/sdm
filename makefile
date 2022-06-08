@@ -79,11 +79,11 @@ out_dir:
 	mkdir $(output_folder)
 	mkdir $(addprefix $(output_folder), /checks)
 	mkdir $(addprefix $(output_folder), /log)
+	mkdir $(addprefix $(output_folder), /out)
 	mkdir $(output_spatial)
 	mkdir $(output_models)
 	mkdir $(output_maps)
 	mkdir $(output_stack)
-	mkdir $(obs_folder)
 
 # Get species occurrences
 $(obs_folder): $(get_obs)
