@@ -89,7 +89,7 @@ out_dir:
 $(obs_folder): $(get_obs)
 	@Rscript $< $@ $(year_start) $(year_end) $(window) $(time_buffer) $(proj)
 
-occurrences: $(obs)
+occurrences: $(obs_folder)
 
 # Make species objects
 species: $(get_species)
