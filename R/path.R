@@ -14,7 +14,7 @@ path <- function() {
     stack="~/scratch/output/stack/",
     check="~/scratch/output/check/",
     maps="~/scratch/output/maps/",
-    occ="~/project/def-dgravel/belv1601/sdm/occurrences/"
+    occ="~/projects/def-dgravel/belv1601/sdm/data/occurrences/"
   )
 }
 
@@ -29,7 +29,7 @@ path <- function() {
 
 path_sp <- function(species) {
   list(
-    occ=paste0("occurrences/", species, ".rds"),
+    occ=paste0(path()$occ, species, ".rds"),
     spat=paste0(path()$spat, species),
     mod=paste0(path()$mod, species),
     log=paste0(path()$log, species),
