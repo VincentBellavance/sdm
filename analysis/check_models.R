@@ -11,11 +11,12 @@ species <- args[1]
 stack_exists <- "maps.gri" %in% list.files(path_sp(species)$maps)
 
 if(!stack_exists) {
-  saveRDS("", paste0(path_sp(species)$check, "/not_completed.rds")
+  dir.create(path_sp(species)$check)
+  saveRDS("", paste0(path_sp(species)$check, "/not_completed.rds"))
 } else {
 
   # Read raster stack
-  sdms <- raster::stack(paste0(path_sp(species)$maps, "maps.gri"))
+  sdms <- raster::stack(paste0(path_sp(species)$maps, "/maps.gri"))
 
   # Calculate sum of p(occ) for every year
   pocc <- make_ts(sdms)

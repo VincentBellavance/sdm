@@ -12,7 +12,7 @@ path <- function() {
     mod="~/scratch/output/models/",
     log="~/scratch/output/log/",
     stack="~/scratch/output/stack/",
-    check="~/scratch/output/check/",
+    check="~/scratch/output/checks/",
     maps="~/scratch/output/maps/",
     occ="~/projects/def-dgravel/belv1601/sdm/data/occurrences/"
   )

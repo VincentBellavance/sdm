@@ -17,10 +17,10 @@ obs_folder=$(addprefix $(data_folder), /occurrences/)
 obs=$(addsuffix .rds, $(addprefix $(obs_folder), $(species)))
 
 # Output folders
-output_spatial=	$(addprefix $(output_folder), /spatial)
-output_models=$(addprefix $(output_folder), /models)
-output_maps=$(addprefix $(output_folder), /maps)
-output_stack=$(addprefix $(output_folder), /stack)
+output_spatial=	$(addprefix $(output_folder), /spatial/)
+output_models=$(addprefix $(output_folder), /models/)
+output_maps=$(addprefix $(output_folder), /maps/)
+output_stack=$(addprefix $(output_folder), /stack/)
 
 ## Species specific spatial objects
 study_extent=$(addsuffix /study_extent.rds, $(addprefix $(output_spatial), $(species)))
@@ -48,13 +48,13 @@ t1=0.05
 t2=0.55
 
 # Run checks on models
-$(checks): $(check_models) $(maps)
+$(checks): $(check_models)
 	@Rscript $< $(species)
 
 checks: $(checks)
 
 # Make map(entire zone + qc) and compute AUC
-$(maps): $(make_maps) $(sdms) 
+$(maps): $(make_maps) 
 	@Rscript $< $(species) $(proj)
 
 maps: $(maps)
