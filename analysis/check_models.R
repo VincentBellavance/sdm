@@ -56,7 +56,7 @@ if(!stack_exists) {
     check_folder <- path_sp(species)$check
     dir.create(check_folder)
 
-    if(nrow(sus_all) > 0) {
+    if(length(sus_all) > 0) {
       saveRDS(list(sus_all = sus_all,
                    sus_mean_sd1 = sus_mean_sd1,
                    sus_mean_sd2 = sus_mean_sd2,
@@ -70,3 +70,4 @@ if(!stack_exists) {
     }
   }
 }
+le
