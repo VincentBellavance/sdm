@@ -57,7 +57,7 @@ for(j in 0:(year_end-years[length(years)])) {
   obs <- obs_all[obs_all$year_obs %in% (years+j),]
   obs <- convert_in_success_trials(obs, rast)
 
-  if(nrow(sum(obs$presences)) > 25) {
+  if(sum(obs$presences) > 25) {
     
     ## Make model and pray that it makes sense
     tryCatch(
