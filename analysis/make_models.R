@@ -36,7 +36,7 @@ rast <- raster::stack(paste0(path_sp(species)$spat,"/rast.gri"))
 
 source("R/make_spde.R")
 source("R/make_stack.R")
-source("R/aggregate_obs.R")
+source("R/success_trials.R")
 
 # Species name as a folders
 dir.create(path_sp(species)$mod)
@@ -55,9 +55,9 @@ for(j in 0:(year_end-years[length(years)])) {
 
    ## Filter observations
   obs <- obs_all[obs_all$year_obs %in% (years+j),]
-  obs <- aggregate_obs(obs, years, j, rast)
+  obs <- convert_in_success_trials(obs, rast)
 
-  if(nrow(obs[obs$occurrence,]) > 25) {
+  if(nrow(sum(obs$presences)) > 25) {
     
     ## Make model and pray that it makes sense
     tryCatch(
@@ -69,9 +69,10 @@ for(j in 0:(year_end-years[length(years)])) {
         # Step 8 - Building the model
         if(j != 0) {
 
-          model <- inla(occurrence ~ 0 + f(i, model = spde),
+          model <- inla(presences ~ 0 + f(i, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
+                      Ntrials="observations",
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
                                            openmp.strategy = "huge"),
@@ -83,9 +84,10 @@ for(j in 0:(year_end-years[length(years)])) {
                       verbose = TRUE,
                       debug = TRUE)
         } else {
-          model <- inla(occurrence ~ 0 + f(i, model = spde),
+          model <- inla(presences ~ 0 + f(i, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
+                      Ntrials="observations",
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
                                            openmp.strategy = "huge"),
