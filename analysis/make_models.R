@@ -1,3 +1,4 @@
+
 # Make Species Distribution Models that will be used in the BDI calculation
 
 #--------------------------------------------------------------
@@ -77,7 +78,6 @@ for(j in 0:(year_end-years[length(years)])) {
                       control.predictor=list(A=inla.stack.A(Stack),
                                              compute=TRUE, 
                                              link = 1),
-                      num.threads = num_threads,
                       control.mode = list(theta = previous_model$mode$theta, restart = TRUE),
                       control.inla=list(int.strategy = "ccd"),
                       verbose = TRUE,
@@ -92,7 +92,6 @@ for(j in 0:(year_end-years[length(years)])) {
                       control.predictor=list(A=inla.stack.A(Stack),
                                              compute=TRUE,
                                              link = 1),
-                      num.threads = num_threads,
                       control.inla=list(int.strategy = "ccd"),
                       verbose = TRUE,
                       debug = TRUE)
