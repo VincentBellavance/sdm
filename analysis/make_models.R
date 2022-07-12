@@ -49,13 +49,13 @@ years <- year_start:(year_start+window_width-1)
 
 # Make models for every time windows
 for(j in 0:(year_end-years[length(years)])) {
- 
  ## Mean year of the time window
   year <- mean((years+j))
 
    ## Filter observations
   obs <- obs_all[obs_all$year_obs %in% (years+j),]
   obs <- convert_in_success_trials(obs, rast)
+  obs <- obs[obs$observations > 0,]
 
   if(sum(obs$presences) > 25) {
     
@@ -72,7 +72,7 @@ for(j in 0:(year_end-years[length(years)])) {
           model <- inla(presences ~ 0 + f(i, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
-                      Ntrials=obs$observations,
+                      Ntrials=observations,
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
                                            openmp.strategy = "huge"),
@@ -87,7 +87,7 @@ for(j in 0:(year_end-years[length(years)])) {
           model <- inla(presences ~ 0 + f(i, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
-                      Ntrials=obs$observations,
+                      Ntrials=observations,
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
                                            openmp.strategy = "huge"),
