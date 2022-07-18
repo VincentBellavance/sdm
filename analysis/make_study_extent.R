@@ -24,7 +24,7 @@ if(!exists(path_sp(species)$spat)) {
 }
 
 # Crop observations with new polygon
-obs <- terra::crop(terra::vect(obs), terra::vect(q))
+obs <- terra::intersect(terra::vect(obs), terra::vect(q))
 obs <- as(obs, "Spatial")
 raster::crs(obs) <- raster::crs(q)
 
@@ -43,15 +43,10 @@ if (!is.null(dist_buffer)) {
   study_extent <-  sf::st_buffer(study_extent, dist =  dist_buffer)
 }
 
-study_extent <- as(study_extent, "Spatial")
-raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
-
 # Filter observations with study extent
-study_extent <- terra::crop(terra::vect(study_extent), terra::vect(q))
-obs <- terra::crop(terra::vect(obs), study_extent)
+study_extent <- terra::intersect(study_extent, terra::vect(q))
+obs <- terra::intersect(terra::vect(obs), study_extent)
 obs <- as(obs, "Spatial")
-study_extent <- as(study_extent, "Spatial")
-raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
 raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 
 # Make mesh
@@ -65,8 +60,13 @@ mesh <- INLA::inla.mesh.2d(boundary = study_extent,
                            crs = raster::crs(study_extent))
 
 # Crop raster with study extent
-raster <- raster::raster("data/rast.gri")
-raster <- raster::crop(raster, study_extent)
+rast <- raster::raster("data/rast.gri")
+rast <- terra::mask(terra::crop(terra::rast(rast), study_extent)
+study_extent <- as(study_extent, "Spatial")
+raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
+rast <- raster::raster(rast)
+raster::crs(rast) <- raster::crs(obs_pres@proj4string)
+
 
 # Save all four objects
 raster::writeRaster(raster, paste0(path_sp(species)$spat,"/rast"))
