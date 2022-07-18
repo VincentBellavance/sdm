@@ -26,6 +26,7 @@ if(!exists(path_sp(species)$spat)) {
 # Crop observations with new polygon
 obs <- terra::crop(terra::vect(obs), terra::vect(q))
 obs <- as(obs, "Spatial")
+raster::crs(obs) <- raster::crs(q)
 
 # Filter for presence only to define the polygon
 obs_pres <- obs[obs$occurrence == 1,]
