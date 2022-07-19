@@ -26,7 +26,6 @@ if(!exists(path_sp(species)$spat)) {
 # Crop observations with new polygon
 obs <- terra::intersect(terra::vect(obs), terra::vect(q))
 obs <- as(obs, "Spatial")
-raster::crs(obs) <- raster::crs(q)
 
 # Filter for presence only to define the polygon
 obs_pres <- obs[obs$occurrence == 1,]
@@ -48,9 +47,7 @@ if (!is.null(dist_buffer)) {
 study_extent <- terra::intersect(terra::vect(study_extent), terra::vect(q))
 obs <- terra::intersect(terra::vect(obs), study_extent)
 obs <- as(obs, "Spatial")
-raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 study_extent <- as(study_extent, "Spatial")
-raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
 
 # Make mesh
 pedge <- as.numeric(args[3])
@@ -66,11 +63,10 @@ mesh <- INLA::inla.mesh.2d(boundary = study_extent,
 rast <- raster::raster("data/rast.gri")
 rast <- terra::mask(terra::crop(terra::rast(rast), terra::vect(study_extent)), terra::vect(study_extent))
 rast <- raster::raster(rast)
-raster::crs(rast) <- raster::crs(obs_pres@proj4string)
 
 
 # Save all four objects
-raster::writeRaster(raster, paste0(path_sp(species)$spat,"/rast"))
+raster::writeRaster(rast, paste0(path_sp(species)$spat,"/rast"))
 saveRDS(mesh, paste0(path_sp(species)$spat,"/mesh.rds"))
 saveRDS(obs, paste0(path_sp(species)$spat,"/obs.rds"))
 saveRDS(study_extent, paste0(path_sp(species)$spat,"/study_extent.rds"))
