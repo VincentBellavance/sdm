@@ -9,9 +9,12 @@
 #' @import dplyr dismo raster
 #' @export
 
-find_threshold <- function(sdm, occs, bg, type = "sensitivity") {
+find_threshold <- function(sdm, obs, type = "sensitivity") {
   if (!inherits(sdm, "SpatRaster")) {
     sdm <- terra::rast(sdm)
+  }
+  if (!inherits(obs, "SpatVect")) {
+    obs <- terra::vect(obs)
   }
 
   if (type == "spse") {
@@ -19,12 +22,12 @@ find_threshold <- function(sdm, occs, bg, type = "sensitivity") {
   }
   # extract model estimated suitability for occurrence localities
   # occs_vals <- terra::extract(sdm, occs)
-  occs_vals <- terra::extract(sdm, occs) %>%
+  occs_vals <- terra::extract(sdm, obs[obs$occurrence == 1,]) %>%
     dplyr::select(-ID) %>%
     dplyr::pull(1)
 
   # extract model estimated suitability for background
-  bg_vals <- terra::extract(sdm, bg) %>%
+  bg_vals <- terra::extract(sdm, obs[obs$occurrence == 0,]) %>%
     dplyr::select(-ID) %>%
     dplyr::pull(1)
 
