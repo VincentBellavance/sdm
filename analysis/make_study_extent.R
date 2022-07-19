@@ -46,7 +46,7 @@ if (!is.null(dist_buffer)) {
 
 # Filter observations with study extent
 study_extent <- terra::intersect(terra::vect(study_extent), terra::vect(q))
-obs <- terra::intersect(terra::vect(obs), terra::vect(study_extent))
+obs <- terra::intersect(terra::vect(obs), study_extent)
 obs <- as(obs, "Spatial")
 raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 study_extent <- as(study_extent, "Spatial")
