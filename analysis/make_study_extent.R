@@ -64,7 +64,7 @@ mesh <- INLA::inla.mesh.2d(boundary = study_extent,
 
 # Crop raster with study extent
 rast <- raster::raster("data/rast.gri")
-rast <- terra::mask(terra::crop(terra::rast(rast), terra::vect(study_extent))
+rast <- terra::mask(terra::crop(terra::rast(rast), terra::vect(study_extent)))
 rast <- raster::raster(rast)
 raster::crs(rast) <- raster::crs(obs_pres@proj4string)
 
