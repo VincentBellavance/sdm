@@ -87,7 +87,7 @@ for(i in 1:length(models)) {
   map_binary <- binarize_pred(map, threshold)
 
   # Create stack if it doesn't exist, else stack the map to the existing one
-  if(exists("map_stack")) {
+  if(exists("map_stack_pocc")) {
     map_stack_pocc <- raster::stack(map_stack_pocc, map)
   } else {
     map_stack_pocc <- raster::stack(map)
@@ -117,7 +117,7 @@ for(i in 1:length(models)) {
 
   # Save the stack of maps if it's the last year
   if(i == length(models)) {
-    raster::writeRaster(map_stack_pocc, paste0(path_sp(species)$maps, "/maps_occ"))
+    raster::writeRaster(map_stack_pocc, paste0(path_sp(species)$maps, "/maps_pocc"))
     raster::writeRaster(map_stack_uncert, paste0(path_sp(species)$maps, "/maps_uncert"))
     raster::writeRaster(map_stack_binary, paste0(path_sp(species)$maps, "/maps_binary"))
   }
