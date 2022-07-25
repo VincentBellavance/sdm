@@ -15,6 +15,7 @@ args = commandArgs(trailingOnly=TRUE)
 suppressMessages(library(INLA))
 suppressMessages(library(raster))
 suppressMessages(library(terra))
+suppressMessages(library(dplyr))
 
 # Set variables
 species <- args[1]
