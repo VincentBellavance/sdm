@@ -8,7 +8,7 @@ source("R/path.R")
 
 # The folder that contains maps
 species <- args[1]
-stack_exists <- "maps.gri" %in% list.files(path_sp(species)$maps)
+stack_exists <- "maps_pocc.gri" %in% list.files(path_sp(species)$maps)
 
 if(!stack_exists) {
   dir.create(path_sp(species)$check)
@@ -16,7 +16,7 @@ if(!stack_exists) {
 } else {
 
   # Read raster stack
-  sdms <- raster::stack(paste0(path_sp(species)$maps, "/maps.gri"))
+  sdms <- raster::stack(paste0(path_sp(species)$maps, "/maps_pocc.gri"))
 
   # Calculate sum of p(occ) for every year
   pocc <- make_ts(sdms)
@@ -52,7 +52,7 @@ if(!stack_exists) {
   sus_all <- pocc[sus_mean[sus_mean %in% unique(c(sus_sd1,sus_sd2, sus_sd3))], "years"]
 
   # Save the missing years and the failed years, if there is any
-  if(length(sus_all) != 0 & length(missing_years) > 0) {
+  if(length(sus_all) != 0 | length(missing_years) > 0) {
     check_folder <- path_sp(species)$check
     dir.create(check_folder)
 

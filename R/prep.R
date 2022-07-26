@@ -14,34 +14,29 @@ prep_spat_poly <- function(proj) {
     return(readRDS("data/spacePoly.rds"))
   } else {
     ## Visualize observations on the map
-    states <- c("CA.ON", "CA.MB", "CA.NB", "CA.NF", "CA.NS", "CA.NU", "CA.PE", "CA.QC", "US.VT", "US.ME", "US.NY", "US.NH", "US.MA", "US.RI", "US.CT", "US.PA", "US.NJ")
+    us_states <- c("US.VT", "US.ME", "US.NY", "US.NH", "US.MA", "US.RI", "US.CT", "US.PA", "US.NJ")
+    can_provinces <- c("CA.NB", "CA.NS", "CA.PE", "CA.QC")
+    lab_divisions <- c("CA.NF.TE")
+    on_districts_rm <- c("CA.ON.KR", "CA.ON.RR", "CA.ON.TB", "CA.ON.WB")
 
     ### Get states data
-    q1<-raster::getData('GADM', country='CAN', level=1, download = TRUE) # Canada
-    q2<-raster::getData('GADM', country='USA', level=1, download = TRUE) # US
+    can1<-raster::getData('GADM', country='CAN', level=1, download = TRUE)
+    can2 <- raster::getData('GADM', country='CAN', level=2, download = TRUE)
+    us<-raster::getData('GADM', country='USA', level=1, download = TRUE)
 
     ### Keep states where there is ebird data
-    q1 <- q1[q1$HASC_1 %in% states,]
-    q2 <- q2[q2$HASC_1 %in% states,]
+    can1 <- can1[can1$HASC_1 %in% can_provinces,1]
+    on <- can2[can2$NAME_1 == "Ontario" & !can2$HASC_2 %in% on_districts_rm,1]
+    lab <- can2[can2$HASC_2 %in% lab_divisions,1]
+    us <- us[us$HASC_1 %in% us_states,1]
 
     ### Bind US and Canada together
-    q <- rbind(q1, q2) # This is the region of interest we want to model
+    q <- rbind(can1,on,lab,us) # This is the region of interest we want to model
     q <- terra::vect(q)
     q <- terra::aggregate(q, dissolve = T)
     q <- terra::project(q, proj)
     q <- as(sf::st_as_sf(q), "Spatial")
     raster::crs(q) <- proj
-
-#    t1 <- system.time({
-#      q <- terra::vect(q)
-#      q <- terra::aggregate(q, dissolve = T)
-#      q <- terra::project(q, proj)
-#      q <- as(sf::st_as_sf(q), "Spatial")
-#    })
-#    t2 <- system.time({
-#      q <- raster::aggregate(q, dissolve = T)
-#      q <- raster::raster::projectRaster(q, sp::CRS(proj))
-#    })
 
     saveRDS(q, "data/spacePoly.rds")
     return(q)
