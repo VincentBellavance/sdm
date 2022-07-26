@@ -32,12 +32,14 @@ make_stack <- function(mesh, obs, spde) {
 
         # Step 7 - Build stack
         ## Stack for estimation
-        StackEst <- inla.stack(data=list(occurrence = obs$occurrence),
+        StackEst <- inla.stack(data=list(presences = obs$presences,
+                                         observations = obs$observations),
                                A = AEstlist,
                                effects = effectEst,
                                tag="est")
         ## Stack for prediction
-        StackPred <- inla.stack(data=list(occurrence = NA),
+        StackPred <- inla.stack(data=list(presences = NA,
+                                          observations = NA),
                                 A=APredlist,
                                 effects=effectPred,
                                 tag="pred")

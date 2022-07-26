@@ -23,6 +23,10 @@ if(!exists(path_sp(species)$spat)) {
   dir.create(path_sp(species)$spat)
 }
 
+# Crop observations with new polygon
+obs <- terra::intersect(terra::vect(obs), terra::vect(q))
+obs <- as(obs, "Spatial")
+
 # Filter for presence only to define the polygon
 obs_pres <- obs[obs$occurrence == 1,]
 
@@ -32,22 +36,18 @@ coords.t <- chull(xy[,1], xy[,2])
 xy.bord <- xy[coords.t,]
 xy.bord <- rbind(xy.bord[nrow(xy.bord), ], xy.bord)
 study_extent <- sp::SpatialPolygons(list(sp::Polygons(list(sp::Polygon(as.matrix(xy.bord))), 1)))
-study_extent <- sf::st_as_sf(study_extent, crs = raster::crs(obs_pres@proj4string))
+study_extent <- sf::st_as_sf(study_extent)
+sf::st_crs(study_extent) <- raster::crs(obs_pres@proj4string)
 
 if (!is.null(dist_buffer)) {
   study_extent <-  sf::st_buffer(study_extent, dist =  dist_buffer)
 }
 
-study_extent <- as(study_extent, "Spatial")
-raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
-
 # Filter observations with study extent
-study_extent <- terra::crop(terra::vect(study_extent), terra::vect(q))
-obs <- terra::crop(terra::vect(obs), study_extent)
+study_extent <- terra::intersect(terra::vect(study_extent), terra::vect(q))
+obs <- terra::intersect(terra::vect(obs), study_extent)
 obs <- as(obs, "Spatial")
 study_extent <- as(study_extent, "Spatial")
-raster::crs(study_extent) <- raster::crs(obs_pres@proj4string)
-raster::crs(obs) <- raster::crs(obs_pres@proj4string)
 
 # Make mesh
 pedge <- as.numeric(args[3])
@@ -60,11 +60,13 @@ mesh <- INLA::inla.mesh.2d(boundary = study_extent,
                            crs = raster::crs(study_extent))
 
 # Crop raster with study extent
-raster <- raster::raster("data/rast.gri")
-raster <- raster::crop(raster, study_extent)
+rast <- raster::raster("data/rast.gri")
+rast <- terra::mask(terra::crop(terra::rast(rast), terra::vect(study_extent)), terra::vect(study_extent))
+rast <- raster::raster(rast)
+
 
 # Save all four objects
-raster::writeRaster(raster, paste0(path_sp(species)$spat,"/rast"))
+raster::writeRaster(rast, paste0(path_sp(species)$spat,"/rast"))
 saveRDS(mesh, paste0(path_sp(species)$spat,"/mesh.rds"))
 saveRDS(obs, paste0(path_sp(species)$spat,"/obs.rds"))
 saveRDS(study_extent, paste0(path_sp(species)$spat,"/study_extent.rds"))
