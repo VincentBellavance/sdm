@@ -84,8 +84,28 @@ for(i in 1:length(models)) {
   
   # make binary maps
   ## Find threshold
-  threshold <- find_threshold(map, obs, "sensitivity")
-  map_binary <- binarize_pred(map, threshold)
+  thresh_spec_sens <- find_threshold(map, obs, "spec_sens")
+  map_spec_sens <- binarize_pred(map, thresh_spec_sens)
+
+  # make binary maps
+  ## Find threshold
+  thresh_sensitivity <- find_threshold(map, obs, "sensitivity")
+  map_sensitivity <- binarize_pred(map, thresh_sensitivity)
+
+  # make binary maps
+  ## Find threshold
+  thresh_kappa <- find_threshold(map, obs, "kappa")
+  map_kappa <- binarize_pred(map, thresh_kappa)
+
+  # make binary maps
+  ## Find threshold
+  thresh_prevalence <- find_threshold(map, obs, "prevalence")
+  map_prevalence <- binarize_pred(map, thresh_prevalence)
+
+  # make binary maps
+  ## Find threshold
+  thresh_equal_sens_spec <- find_threshold(map, obs, "equal_sens_spec")
+  map_equal_sens_spec <- binarize_pred(map, thresh_equal_sens_spec)
 
   # Create stack if it doesn't exist, else stack the map to the existing one
   if(exists("map_stack_pocc")) {
@@ -102,17 +122,49 @@ for(i in 1:length(models)) {
   }
 
   # Create binary map stack
-  if(exists("map_stack_binary")) {
-    map_stack_binary <- raster::stack(map_stack_binary, map_binary)
+  if(exists("map_stack_spec_sens")) {
+    map_stack_spec_sens <- raster::stack(map_stack_spec_sens, map_spec_sens)
   } else {
-    map_stack_binary <- raster::stack(map_binary)
+    map_stack_spec_sens <- raster::stack(map_spec_sens)
+  }
+
+  # Create binary map stack
+  if(exists("map_stack_sensitivity")) {
+    map_stack_sensitivity <- raster::stack(map_stack_sensitivity, map_sensitivity)
+  } else {
+    map_stack_sensitivity <- raster::stack(map_sensitivity)
+  }
+
+  # Create binary map stack
+  if(exists("map_stack_kappa")) {
+    map_stack_kappa <- raster::stack(map_stack_kappa, map_kappa)
+  } else {
+    map_stack_kappa <- raster::stack(map_kappa)
+  }
+
+  # Create binary map stack
+  if(exists("map_stack_prevalence")) {
+    map_stack_prevalence <- raster::stack(map_stack_prevalence, map_prevalence)
+  } else {
+    map_stack_prevalence <- raster::stack(map_prevalence)
+  }
+
+  # Create binary map stack
+  if(exists("map_stack_equal_sens_spec")) {
+    map_stack_equal_sens_spec <- raster::stack(map_stack_equal_sens_spec, map_equal_sens_spec)
+  } else {
+    map_stack_equal_sens_spec <- raster::stack(map_equal_sens_spec)
   }
 
   # Clean  
   rm(map_pocc)
   rm(map_0025)
   rm(map_0975)
-  rm(map_binary)
+  rm(map_spec_sens)
+  rm(map_sensitivity)
+  rm(map_kappa)
+  rm(map_prevalence)
+  rm(map_equal_sens_spec)
   rm(mod)
   rm(Stack)
 
@@ -120,7 +172,11 @@ for(i in 1:length(models)) {
   if(i == length(models)) {
     raster::writeRaster(map_stack_pocc, paste0(path_sp(species)$maps, "/maps_pocc"))
     raster::writeRaster(map_stack_uncert, paste0(path_sp(species)$maps, "/maps_uncert"))
-    raster::writeRaster(map_stack_binary, paste0(path_sp(species)$maps, "/maps_binary"))
+    raster::writeRaster(map_stack_spec_sens, paste0(path_sp(species)$maps, "/maps_spec_sens"))
+    raster::writeRaster(map_stack_sensitivity, paste0(path_sp(species)$maps, "/maps_sensitivity"))  
+    raster::writeRaster(map_stack_kappa, paste0(path_sp(species)$maps, "/maps_kappa"))
+    raster::writeRaster(map_stack_prevalence, paste0(path_sp(species)$maps, "/maps_prevalence"))
+    raster::writeRaster(map_stack_equal_sens_spec, paste0(path_sp(species)$maps, "/maps_equal_sens_spec"))
   }
 
   cat(paste0(years[i], " done\n"))
@@ -129,4 +185,8 @@ for(i in 1:length(models)) {
 # Clean
 rm(map_stack_pocc)
 rm(map_stack_uncert)
-rm(map_stack_binary)
+rm(map_stack_spec_sens)
+rm(map_stack_sensitivity)
+rm(map_stack_kappa)
+rm(map_stack_prevalence)
+rm(map_stack_equal_sens_spec)
