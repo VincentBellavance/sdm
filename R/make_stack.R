@@ -1,6 +1,6 @@
 make_stack <- function(mesh, obs, spde) {
         # Step 3 - Index matrix
-        field <- inla.spde.make.index("field", n.spde=mesh$n)
+        field <- inla.spde.make.index("field", n.spde=spde$n.spde)
 
 
         # Step 4 - A matrix
@@ -25,9 +25,9 @@ make_stack <- function(mesh, obs, spde) {
 
         # Step 6 - Organise the effects (field variables)
         ## Estimation
-        effectEst <- list(i = 1:spde$n.spde)
+        effectEst <- list(c(field, list(Intercept = 1)))
         ## Prediction
-        effectPred <- list(i = 1:spde$n.spde)
+        effectPred <- list(c(field, list(Intercept = 1)))
 
 
         # Step 7 - Build stack

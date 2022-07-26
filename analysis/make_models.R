@@ -69,7 +69,7 @@ for(j in 0:(year_end-years[length(years)])) {
         # Step 8 - Building the model
         if(j != 0) {
 
-          model <- inla(presences ~ 0 + f(i, model = spde),
+          model <- inla(presences ~ -1 + Intercept + f(field, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
                       Ntrials=observations,
@@ -84,7 +84,7 @@ for(j in 0:(year_end-years[length(years)])) {
                       verbose = TRUE,
                       debug = TRUE)
         } else {
-          model <- inla(presences ~ 0 + f(i, model = spde),
+          model <- inla(presences ~ -1 + Intercept + f(field, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
                       Ntrials=observations,
