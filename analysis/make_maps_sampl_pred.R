@@ -19,7 +19,6 @@ suppressMessages(library(dplyr))
 
 # Set variables
 species <- args[1]
-proj <- args[2]
 
 # Import functions
 source("R/make_maps_bs.R")
@@ -52,7 +51,7 @@ maps <- lapply(1:length(years), function(x) {
   maps <- make_maps_bs(mod, 
                        mesh, 
                        rast,
-                       qc,
+                       study_extent,
                        Stack,
                        years[x])
 
