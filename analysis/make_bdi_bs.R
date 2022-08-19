@@ -1,28 +1,41 @@
 # Calculate the BDI with the generated maps by resampling the posteriors of the models' fitted values
 
+library(raster)
+
 # Import index number
 args <- commandArgs(trailingOnly=TRUE)
-i <- args[1]
+i <- as.integer(args[1])
 
 # Import rbdi library
-library(rbdi)
+source("../rbdi/R/calc_bdi.R")
+source("../rbdi/R/calc_lgr.R")
+source("../rbdi/R/utils.R")
+source("R/path.R")
 
 # Get vector of species name
 output_folder <- path()$maps
-species <- list.dir(output_folder, recursive = FALSE, full.names = FALSE)
+species <- list.dirs(output_folder, recursive = FALSE, full.names = FALSE)
 
 # Import species SDMs
 sdms <- lapply(species, function(x) {
-  maps_file <- paste0(path_sp(x), "maps_bs.gri")
+  maps_file <- paste0(path_sp(x)$maps, "/maps_bs.gri")
   if(file.exists(maps_file)){
-      raster::stack(maps_file, 
-                    bands = seq(from = 0, by = 1000, length.out = 27)+i)
+      tmp <- raster::stack(maps_file, 
+                           bands = seq(from = 0, by = 1000, length.out = 27)+i)
+      names(tmp) <- gsub("_[0-9]+$", "", names(tmp))
+      return(tmp)
   }
 })
 names(sdms) <- species
+print(sdms)
+
+species <- species[!sapply(sdms, is.null) & sapply(sdms, function(x) length(names(x))) == 27]
+sdms <- sdms[!sapply(sdms, is.null)]
+sdms <- sdms[sapply(sdms, function(x) length(names(x))) == 27]
+names(sdms) <- species
 
 # Calculate BDI
-bdi <- rbdi::calc_bdi(sdms, first_year = 1992)
+bdi <- calc_bdi(sdms, first_year = 1992)
 
 # Save bdi object
 write.table(bdi, 

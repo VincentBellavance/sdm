@@ -52,7 +52,7 @@ maps <- lapply(1:length(years), function(x) {
   maps <- make_maps_bs(mod, 
                        mesh, 
                        rast,
-                       qc,
+                       study_extent,
                        Stack,
                        years[x])
 
