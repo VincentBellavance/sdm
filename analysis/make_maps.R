@@ -30,10 +30,6 @@ source("R/binarize_maps.R")
 
 # Create directories for species
 dir.create(path_sp(species)$maps)
-dir.create(path_maps(species)$qc)
-dir.create(path_maps(species)$region)
-dir.create(path_maps(species)$region_pres)
-dir.create(path_maps(species)$region_abs)
 
 # Import spatial objects
 study_extent <- readRDS(paste0(path_sp(species)$spat, "/study_extent.rds"))
@@ -60,7 +56,7 @@ for(i in 1:length(models)) {
   Stack <- readRDS(paste0(path_sp(species)$stack, "/", Stacks[i]))
 
   # Make map for entire sPoly to compute AUC
-  map <- make_map(type = "mean",
+  map <- make_map(type = "0.5quant",
                   mesh,
                   mod,
                   rast,

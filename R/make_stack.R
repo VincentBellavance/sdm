@@ -25,9 +25,9 @@ make_stack <- function(mesh, obs, spde) {
 
         # Step 6 - Organise the effects (field variables)
         ## Estimation
-        effectEst <- list(c(field, list(Intercept = 1)))
+        effectEst <- list(field)
         ## Prediction
-        effectPred <- list(c(field, list(Intercept = 1)))
+        effectPred <- list(field)
 
 
         # Step 7 - Build stack
