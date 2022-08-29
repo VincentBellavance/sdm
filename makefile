@@ -81,6 +81,7 @@ out_dir:
 	mkdir $(output_models)
 	mkdir $(output_maps)
 	mkdir $(output_stack)
+	mkdir output/bdi
 
 # Get species occurrences
 $(obs_folder): $(get_obs)

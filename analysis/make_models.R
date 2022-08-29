@@ -69,13 +69,14 @@ for(j in 0:(year_end-years[length(years)])) {
         # Step 8 - Building the model
         if(j != 0) {
 
-          model <- inla(presences ~ 0 + f(i, model = spde),
+          model <- inla(presences ~ 0 + f(field, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
                       Ntrials=observations,
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
-                                           openmp.strategy = "huge"),
+                                           openmp.strategy = "huge",
+					   config = TRUE),
                       control.predictor=list(A=inla.stack.A(Stack),
                                              compute=TRUE, 
                                              link = 1),
@@ -84,13 +85,14 @@ for(j in 0:(year_end-years[length(years)])) {
                       verbose = TRUE,
                       debug = TRUE)
         } else {
-          model <- inla(presences ~ 0 + f(i, model = spde),
+          model <- inla(presences ~ 0 + f(field, model = spde),
                       data = inla.stack.data(Stack),
                       family="binomial",
                       Ntrials=observations,
                       control.family =list(link="logit"),
                       control.compute=list(waic=TRUE,
-                                           openmp.strategy = "huge"),
+                                           openmp.strategy = "huge",
+					   config = TRUE),
                       control.predictor=list(A=inla.stack.A(Stack),
                                              compute=TRUE,
                                              link = 1),

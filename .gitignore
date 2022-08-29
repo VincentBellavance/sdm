@@ -7,3 +7,4 @@ occurrences
 tmp_occ
 tests
 garbage
+*.sh
