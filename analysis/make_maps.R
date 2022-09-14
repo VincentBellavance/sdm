@@ -56,7 +56,7 @@ for(i in 1:length(models)) {
   Stack <- readRDS(paste0(path_sp(species)$stack, "/", Stacks[i]))
 
   # Make map for entire sPoly to compute AUC
-  map <- make_map(type = "0.5quant",
+  map <- make_map(type = "mean",
                   mesh,
                   mod,
                   rast,
@@ -81,27 +81,27 @@ for(i in 1:length(models)) {
   # make binary maps
   ## Find threshold
   thresh_spec_sens <- find_threshold(map, obs, "spec_sens")
-  map_spec_sens <- binarize_pred(map, thresh_spec_sens)
+  map_spec_sens <- binarize_pred(map, thresh_spec_sens, map_0025)
 
   # make binary maps
   ## Find threshold
   thresh_sensitivity <- find_threshold(map, obs, "sensitivity")
-  map_sensitivity <- binarize_pred(map, thresh_sensitivity)
+  map_sensitivity <- binarize_pred(map, thresh_sensitivity, map_0025)
 
   # make binary maps
   ## Find threshold
   thresh_kappa <- find_threshold(map, obs, "kappa")
-  map_kappa <- binarize_pred(map, thresh_kappa)
+  map_kappa <- binarize_pred(map, thresh_kappa, map_0025)
 
   # make binary maps
   ## Find threshold
   thresh_prevalence <- find_threshold(map, obs, "prevalence")
-  map_prevalence <- binarize_pred(map, thresh_prevalence)
+  map_prevalence <- binarize_pred(map, thresh_prevalence, map_0025)
 
   # make binary maps
   ## Find threshold
   thresh_equal_sens_spec <- find_threshold(map, obs, "equal_sens_spec")
-  map_equal_sens_spec <- binarize_pred(map, thresh_equal_sens_spec)
+  map_equal_sens_spec <- binarize_pred(map, thresh_equal_sens_spec, map_0025)
 
   # Create stack if it doesn't exist, else stack the map to the existing one
   if(exists("map_stack_pocc")) {

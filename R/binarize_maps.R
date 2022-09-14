@@ -52,8 +52,8 @@ find_threshold <- function(sdm, obs, type = "sensitivity") {
 #' @import dplyr dismo raster
 #' @export
 
-binarize_pred <- function(sdm, threshold) {
-  sdm[sdm < threshold] <- 0
+binarize_pred <- function(sdm, threshold, ci025) {
   sdm[sdm >= threshold] <- 1
+  sdm[sdm < threshold & ci025 <= 0.001] <- 0
   return(sdm)
 }
