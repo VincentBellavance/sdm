@@ -9,8 +9,8 @@ suppressMessages(library(INLA))
 suppressMessages(library(terra))
 
 species <- args[1]
-
 source("R/path.R")
+dir.create(path_sp(species)$maps)
 
 # Objet spatial propre à chaque espèce
 study_extent <- readRDS(paste0(path_sp(species)$spat, "/study_extent.rds"))
