@@ -104,7 +104,7 @@ if(length(years) == 27) {
     ## Si c'est la dernière année, sauvegarder le stack
     if(year == 2018) {
       raster::writeRaster(sdms_pocc, 
-                          paste0(path_sp(species)$maps, "maps_pocc"))     
+                          paste0(path_sp(species)$maps, "/maps_pocc"))     
       raster::writeRaster(sdms025, 
                           paste0(path_sp(species)$maps, "/maps_025"))
       raster::writeRaster(sdms975, 
