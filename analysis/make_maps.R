@@ -76,7 +76,7 @@ if(length(years) == 27) {
 
     #---------- Project Raster pour être sur le même origin ----------#
 
-    map_pocc <- raster::projectRaster(map_pocc, org)
+    map_pocc <- raster::projectRaster(map, org)
     map025 <- raster::projectRaster(map025, org)
     map975 <- raster::projectRaster(map975, org)
 
