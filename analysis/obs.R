@@ -3,7 +3,7 @@
 args = commandArgs(trailingOnly=TRUE)
 
 # Set variables
-species <- as.vector(read.table("data/species_vect.txt", sep = " "))
+species <- suppressWarnings(as.vector(read.table("data/species_vect.txt", sep = " ")))
 species <- gsub("_", " ", species)
 species <- stringr::str_to_sentence(species)
 year_start <- as.integer(args[1]) # 1990
@@ -25,6 +25,7 @@ con <- atlasBE::conn(user=Sys.getenv("user"), pwd=Sys.getenv("pwd"), host=Sys.ge
 
 for (i in species) {
   
+  cat("\r", paste0("Importing observations for ", i, ": ", which(species %in% i),"/",length(species)))
   # Get observations
   obs <- get_obs(con, i, c(year_start, year_end))
 
