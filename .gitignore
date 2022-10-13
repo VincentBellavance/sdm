@@ -1,7 +1,5 @@
 output/*
 data/occurrences
-*.rds
-*.csv
 !placeholder
 tmp_occ
 tests
