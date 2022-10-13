@@ -40,7 +40,7 @@ proj='+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NA
 year_start=1990
 year_end=2020
 window=5
-time_buffer=21
+time_buffer=28
 spat_buffer=300
 pedge=0.03
 num_threads=$(cpu_task)
@@ -85,9 +85,7 @@ out_dir:
 
 # Get species occurrences
 $(obs_folder): $(get_obs)
-	@Rscript $< $@ $(year_start) $(year_end) $(window) $(time_buffer) $(proj)
-
-occurrences: $(obs_folder)
+	@Rscript $< $(year_start) $(year_end) $(time_buffer) $(proj)
 
 # Make species objects
 species: $(get_species)
