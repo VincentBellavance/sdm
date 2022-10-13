@@ -1,9 +1,8 @@
 output/*
-data/*
+data/occurrences
 *.rds
 *.csv
 !placeholder
-occurrences
 tmp_occ
 tests
 garbage

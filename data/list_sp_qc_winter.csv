@@ -1,0 +1,476 @@
+species;status
+Dendrocygna autumnalis;Ve
+Dendrocygna bicolor;Ve
+Anser caerulescens;M (N), Ne(4), He(3)
+Anser rossii;M
+Anser anser;Ve, OC
+Anser albifrons;VO, He(1)
+Anser fabalis;Ve #
+Anser serrirostris;Ve
+Anser brachyrhynchus;Ve
+Branta bernicla;M, N(1984)
+Branta leucopsis;VO
+Branta hutchinsii;M (N)
+Branta canadensis;N, H
+Cygnus olor;NM
+Cygnus buccinator;Ve, Ne
+Cygnus columbianus;M (Ne), He(1)
+Tadorna tadorna;Ve
+Aix sponsa;NM, He(6)
+Spatula querquedula;Ve
+Spatula discors;NM
+Spatula cyanoptera;Ve
+Spatula clypeata;NM
+Mareca strepera;NM, He(4)
+Mareca penelope;VO
+Mareca americana;NM, He(4)
+Anas platyrhynchos;R
+Anas rubripes;R
+Anas acuta;N, H
+Anas crecca;NM, He(4)
+Aythya valisineria;M, H
+Aythya americana;NM, He(4)
+Aythya collaris;NM, He(3)
+Aythya fuligula;Ve
+Aythya marila;NM, H
+Aythya affinis;NM, He(5)
+Polysticta stelleri;Ve
+Somateria spectabilis;M (N)
+Somateria mollissima;NM
+Histrionicus histrionicus;NM
+Camptorhynchus labradorius;D
+Melanitta perspicillata;NM, He(1)
+Melanitta deglandi;NM, He(6)
+Melanitta americana;NM, He(3)
+Clangula hyemalis;M (N)
+Bucephala albeola;NM
+Bucephala clangula;R
+Bucephala islandica;NM, H
+Lophodytes cucullatus;NM
+Mergus merganser;R
+Mergus serrator;NM
+Meleagris gallopavo;NM
+Bonasa umbellus;R
+Tympanuchus phasianellus;NM
+Lagopus lagopus;NM
+Lagopus muta;VO (R)
+Canachites canadensis;R
+Perdix perdix;R
+Phasianus colchicus;R
+Podilymbus podiceps;NM, He(4)
+Podiceps auritus;NM, He(1)
+Podiceps grisegena;M, He(5)
+Podiceps nigricollis;Ve
+Aechmophorus occidentalis;Ve
+Aechmophorus occidentalis/clarkii;Ve
+Columba livia;R
+Columba palumbus;Ve
+Patagioenas fasciata;Ve
+Ectopistes migratorius;D
+Streptopelia decaocto;Ve
+Columbina passerina;Ve
+Zenaida asiatica;Ve
+Zenaida macroura;R
+Coccyzus americanus;NMr
+Coccyzus erythropthalmus;NM
+Cuculus canorus;Ve
+Chordeiles minor;NM
+Antrostomus carolinensis;Ve
+Antrostomus vociferus;NM
+Chaetura pelagica;NM
+Apus apus;Ve
+Colibri thalassinus;Ve
+Lampornis amethystinus;Ve
+Archilochus colubris;NM
+Calypte anna;Ve
+Selasphorus rufus;Ve
+Selasphorus sp.;Ve
+Cynanthus latirostris/doubledayi;Ve
+Rallus elegans;Ve
+Rallus crepitans;Ve
+Rallus limicola;NM
+Porzana carolina;NM
+Gallinula galeata;NM, He(2)
+Fulica atra;Ve
+Fulica americana;NM
+Porphyrio martinica;Ve
+Coturnicops noveboracensis;NM
+Antigone canadensis;NM
+Grus grus;Ve
+Grus americana;Ve
+Himantopus mexicanus;Ve
+Recurvirostra americana;Ve
+Haematopus palliatus;Ve
+Haematopus sp.;Ve
+Pluvialis squatarola;M
+Pluvialis apricaria;Ve
+Pluvialis dominica;M (N)
+Vanellus vanellus;Ve
+Charadrius wilsonia;Ve
+Charadrius hiaticula;Ve
+Charadrius semipalmatus;NM
+Charadrius melodus;NM
+Charadrius vociferus;NM, He(2)
+Bartramia longicauda;NM
+Numenius phaeopus;M
+Numenius borealis;D
+Limosa lapponica;Ve #
+Limosa limosa;Ve
+Limosa haemastica;M
+Limosa fedoa;VO, N?
+Arenaria interpres;M
+Calidris canutus;M
+Calidris pugnax;VO
+Calidris acuminata;Ve
+Calidris himantopus;M
+Calidris ferruginea;Ve
+Calidris ruficollis;Ve #
+Calidris alba;M
+Calidris alpina;M (N)
+Calidris maritima;M, HO(12)
+Calidris bairdii;M
+Calidris minuta;Ve
+Calidris minutilla;NM
+Calidris fuscicollis;M
+Calidris subruficollis;M
+Calidris melanotos;M (N)
+Calidris pusilla;M (N)
+Calidris mauri;M
+Limnodromus griseus;M (N)
+Limnodromus scolopaceus;M
+Scolopax minor;NM
+Gallinago delicata;N, H
+Phalaropus tricolor;NM
+Phalaropus lobatus;M (N)
+Phalaropus fulicarius;M (N)
+Actitis macularius;NM
+Tringa solitaria;NM
+Tringa melanoleuca;NM
+Tringa nebularia;Ve
+Tringa semipalmata;VO, Ne(2000)
+Tringa flavipes;M, Ne(1990,2002)
+Stercorarius pomarinus;M (N)
+Stercorarius parasiticus;M (N)
+Stercorarius longicaudus;M (N)
+Stercorarius sp.;Ve
+Alle alle;Mr
+Uria aalge;N, H
+Uria lomvia;R
+Alca torda;NM, He(1)
+Pinguinus impennis;D
+Cepphus grylle;R
+Brachyramphus perdix;Mr, He
+Synthliboramphus antiquus;Ve #
+Fratercula arctica;NM, He(1)
+Rissa tridactyla;NM
+Pagophila eburnea;VO, H
+Xema sabini;VO
+Chroicocephalus philadelphia;NM
+Chroicocephalus ridibundus;NM
+Hydrocoloeus minutus;NM
+Rhodostethia rosea;Ve
+Leucophaeus atricilla;VO
+Leucophaeus pipixcan;VO
+Larus crassirostris;Ve
+Larus canus;Ve
+Larus brachyrhynchus;Ve
+Larus delawarensis;NM, He(5)
+Larus californicus;Ve
+Larus argentatus;R
+Larus michahellis;Ve
+Larus glaucoides;H (N)
+Larus glaucoides thayeri;VO, He(6)
+Larus fuscus;VO
+Larus schistisagus;Ve
+Larus hyperboreus;H (N)
+Larus marinus;R
+Onychoprion fuscatus;Ve
+Gelochelidon nilotica;Ve
+Hydroprogne caspia;NM
+Chlidonias niger;NM
+Chlidonias leucopterus;NM
+Sterna dougallii;NM
+Sterna hirundo;NM
+Sterna paradisaea;NM
+Sterna forsteri;VO
+Thalasseus sandvicensis;Ve
+Thalasseus maximus/albididorsalis;Ve
+Rynchops niger;Ve
+Gavia stellata;NM, He(2)
+Gavia pacifica;VO (N)
+Gavia immer;NM, He(4)
+Thalassarche chlororhynchos;Ve
+Oceanites oceanicus;M
+Hydrobates leucorhous;NM
+Fulmarus glacialis;M, Ne
+Calonectris diomedea;Ve #
+Ardenna gravis;M
+Ardenna grisea;M
+Puffinus puffinus;VO
+Mycteria americana;Ve
+Fregata magnificens;Ve
+Sula leucogaster;Ve
+Morus bassanus;NM, He(2)
+Phalacrocorax carbo;R
+Nannopterum auritum;NM, He(3)
+Nannopterum brasilianum;Ve
+Pelecanus erythrorhynchos;VO
+Pelecanus occidentalis;Ve
+Pelecanus sp.;Ve
+Botaurus lentiginosus;NM
+Ixobrychus exilis;NM, He(1)
+Ardea herodias;N, H
+Ardea alba;NM
+Egretta garzetta;Ve
+Egretta thula;VO
+Egretta caerulea;VO, He(1)
+Egretta tricolor;Ve
+Bubulcus ibis;VO
+Butorides virescens;NM
+Nycticorax nycticorax;NM
+Nyctanassa violacea;Ve
+Eudocimus albus;Ve
+Plegadis falcinellus;VO
+Plegadis chihi;Ve
+Platalea ajaja;Ve
+Coragyps atratus;VO
+Cathartes aura;NM, He(4)
+Pandion haliaetus;NM
+Elanoides forficatus;Ve
+Aquila chrysaetos;NM
+Ictinia mississippiensis;Ve
+Circus hudsonius;NM, H
+Accipiter striatus;NM, H
+Accipiter cooperii;NM, H
+Accipiter gentilis;R
+Haliaeetus leucocephalus;NM, H
+Haliaeetus pelagicus;Ve
+Buteo lineatus;NM, H
+Buteo platypterus;NM
+Buteo swainsoni;Ve
+Buteo jamaicensis;NM
+Buteo lagopus;H (N)
+Tyto alba;VO, Ne
+Megascops asio;R
+Bubo virginianus;R
+Bubo scandiacus;H (N)
+Surnia ulula;R
+Athene cunicularia;Ve
+Strix nebulosa;R
+Asio otus;R
+Asio flammeus;N, H
+Aegolius funereus;R
+Aegolius acadicus;N, H
+Megaceryle alcyon;N, H
+Sphyrapicus varius;NM, He
+Melanerpes erythrocephalus;NM, He(8)
+Melanerpes carolinus;VO, Ne
+Picoides dorsalis;R
+Picoides arcticus;R
+Dryobates pubescens;R
+Dryobates villosus;R
+Dryocopus pileatus;R
+Colaptes auratus;N, H
+Caracara plancus [cheriway Group];Ve
+Falco sparverius;NM
+Falco columbarius;NM
+Falco rusticolus;H (N)
+Falco peregrinus;NM
+Elaenia parvirostris;Ve
+Contopus cooperi;NM
+Contopus sordidulus;Ve
+Contopus virens;NM
+Empidonax flaviventris;NM
+Empidonax virescens;Ve
+Empidonax alnorum;NM
+Empidonax traillii;NM
+Empidonax minimus;NM
+Sayornis phoebe;NM, He(2)
+Sayornis saya;Ve
+Myiarchus cinerascens;Ve
+Myiarchus crinitus;NM
+Tyrannus melancholicus;Ve
+Tyrannus verticalis;Ve
+Tyrannus tyrannus;NM
+Tyrannus dominicensis;Ve
+Tyrannus forficatus;Ve
+Tyrannus savana;Ve
+Vireo atricapilla;Ve
+Vireo griseus;Ve
+Vireo flavifrons;NM
+Vireo solitarius;NM
+Vireo philadelphicus;NM
+Vireo gilvus;NM
+Vireo olivaceus;NM
+Vireo flavoviridis;Ve
+Lanius ludovicianus;NM
+Lanius borealis;H (N)
+Perisoreus canadensis;R
+Cyanocitta cristata;R
+Pica hudsonia;Ve
+Corvus monedula;Ve
+Corvus ossifragus;Ve
+Corvus corax;R
+Poecile atricapillus;R
+Poecile hudsonicus;R
+Baeolophus bicolor;R
+Eremophila alpestris;NM
+Alauda arvensis;Ve
+Stelgidopteryx serripennis;NM
+Progne subis;NM
+Tachycineta bicolor;NM
+Tachycineta thalassina;Ve
+Riparia riparia;NM
+Hirundo rustica;NM
+Petrochelidon pyrrhonota;NM
+Petrochelidon fulva;Ve
+Corthylio calendula;NM, He(4)
+Regulus satrapa;R
+Sitta canadensis;R
+Sitta carolinensis;R
+Certhia americana;R
+Polioptila caerulea;NM
+Salpinctes obsoletus;Ve
+Troglodytes aedon;NM, He
+Troglodytes hiemalis;NM, He(11)
+Cistothorus palustris;NM
+Thryothorus ludovicianus;R
+Sturnus vulgaris;R
+Dumetella carolinensis;NM
+Toxostoma rufum;NM, He(15)
+Mimus polyglottos;R
+Sialia sialis;NM
+Sialia currucoides;Ve
+Myadestes townsendi;VO
+Ixoreus naevius;VO
+Catharus fuscescens;NM
+Catharus minimus;M (N)
+Catharus bicknelli;NM
+Catharus ustulatus;NM
+Catharus guttatus;N, H
+Hylocichla mustelina;NM
+Turdus philomelos;Ve
+Turdus iliacus;Ve
+Turdus migratorius;NM
+Turdus pilaris;Ve
+Oenanthe oenanthe;M (N)
+Bombycilla garrulus;H, Nr
+Bombycilla cedrorum;N, H
+Passer domesticus;R
+Passer montanus;Ve
+Motacilla alba;Ve
+Anthus rubescens;NM, He
+Fringilla montifringilla;Ve
+Coccothraustes vespertinus;R
+Pinicola enucleator;R
+Leucosticte tephrocotis;Ve
+Haemorhous mexicanus;R
+Haemorhous purpureus;R
+Acanthis flammea;R
+Acanthis hornemanni;H (N)
+Loxia curvirostra;R
+Loxia leucoptera;R
+Spinus pinus;R
+Spinus tristis;R
+Calcarius lapponicus;H (N)
+Calcarius pictus;Ve, N?
+Plectrophenax nivalis;H (N)
+Ammodramus savannarum;NM
+Spizella passerina;NM, He(9)
+Spizella pallida;NM, He?
+Spizella pusilla;NM, He(5)
+Spizella breweri;Ve
+Amphispiza bilineata;Ve
+Chondestes grammacus;Ve
+Calamospiza melanocorys;Ve
+Spizelloides arborea;H (N)
+Passerella iliaca;NM, He(4)
+Junco hyemalis;N, H
+Zonotrichia leucophrys;NM, He(18+)
+Zonotrichia atricapilla;Ve
+Zonotrichia querula;Ve
+Zonotrichia albicollis;N, H
+Pooecetes gramineus;NM, He?
+Ammospiza leconteii;NM
+Ammospiza maritima;Ve
+Ammospiza nelsoni;NM
+Passerculus sandwichensis;NM, He(2)
+Passerculus sandwichensis princeps;Ve (sous-esp.)
+Centronyx henslowii;Ve, N?
+Melospiza melodia;N, H
+Melospiza lincolnii;NM, He(2)
+Melospiza georgiana;NM, He(5)
+Pipilo chlorurus;Ve
+Pipilo maculatus;Ve
+Pipilo erythrophthalmus;N, H
+Icteria virens;VO
+Xanthocephalus xanthocephalus;VO
+Dolichonyx oryzivorus;NM
+Sturnella neglecta;NM
+Sturnella magna;N, H
+Icterus spurius;VO,Ne(6)
+Icterus cucullatus;Ve
+Icterus bullockii;Ve
+Icterus galbula;NM
+Agelaius phoeniceus;N, H
+Molothrus ater;N, H
+Euphagus carolinus;NM
+Euphagus cyanocephalus;Ve
+Quiscalus quiscula;N, H
+Seiurus aurocapilla;NM, He(1)
+Helmitheros vermivorum;Ve
+Parkesia motacilla;Ne, Ve
+Parkesia noveboracensis;NM
+Vermivora chrysoptera;NM
+Vermivora cyanoptera;Ne, Ve
+Mniotilta varia;NM
+Protonotaria citrea;Ve
+Leiothlypis peregrina;NM
+Leiothlypis celata;NM
+Leiothlypis ruficapilla;NM
+Oporornis agilis;NM
+Geothlypis philadelphia;NM
+Geothlypis formosa;Ve
+Geothlypis trichas;NM
+Setophaga citrina;Ve, Ne
+Setophaga ruticilla;NM
+Setophaga kirtlandii;Ve
+Setophaga tigrina;NM
+Setophaga cerulea;NM
+Setophaga americana;NM
+Setophaga magnolia;NM
+Setophaga castanea;NM
+Setophaga fusca;NM
+Setophaga petechia;NM
+Setophaga pensylvanica;NM
+Setophaga striata;NM
+Setophaga caerulescens;NM
+Setophaga palmarum;NM
+Setophaga pinus;NM, He(2)
+Setophaga coronata;N, H
+Setophaga dominica;Ve
+Setophaga discolor;VO
+Setophaga nigrescens;Ve
+Setophaga townsendi;Ve
+Setophaga occidentalis;Ve
+Setophaga virens;NM
+Cardellina canadensis;NM
+Cardellina pusilla;NM
+Myioborus pictus;Ve
+Piranga flava;Ve
+Piranga rubra;Ve
+Piranga olivacea;NM
+Piranga ludoviciana;Ve
+Cardinalis cardinalis;R
+Pheucticus ludovicianus;NM, He
+Pheucticus melanocephalus;Ve
+Passerina caerulea;Ve
+Passerina amoena;Ve
+Passerina cyanea;NM, He
+Passerina ciris;Ve, OC?
+Spiza americana;VO, He(1)
+Cistothorus [platensis or stellaris];NM
+Corvus brachyrhynchos [excl. caurinus];R
+Pyrocephalus [rubinus or nanus];Ve
+Strix [varia or sartorii];R
+Oxyura jamaicensis [jamaicensis];NM
