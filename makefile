@@ -13,8 +13,7 @@ make_maps=analysis/make_maps.R
 check_models=analysis/check_models.R
 
 ## Occurrences
-obs_folder=$(addprefix $(data_folder), /occurrences/)
-obs=$(addsuffix .rds, $(addprefix $(obs_folder), $(species)))
+obs_folder=data/occurrences/
 
 # Output folders
 output_spatial=	$(addprefix $(output_folder), /spatial/)

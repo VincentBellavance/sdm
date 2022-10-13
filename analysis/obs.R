@@ -16,6 +16,8 @@ source("R/get_obs.R")
 source("R/filter_dates.R")
 source("R/extract_coords.R")
 
+# Create occurrence folder
+dir.create("data/occurrences")
 
 # Connection to DB
 con <- atlasBE::conn(user=Sys.getenv("user"), pwd=Sys.getenv("pwd"), host=Sys.getenv("host"), dbname=Sys.getenv("dbname"))
