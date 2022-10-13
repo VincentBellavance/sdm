@@ -51,7 +51,7 @@ for (i in species) {
   obs <- sp::spTransform(obs, sp::CRS(proj))
 
   # Save spdf
-  lower_sp <- gsub(" ", "_", tolower(species$accepted))
+  lower_sp <- gsub(" ", "_", tolower(i))
   saveRDS(obs, paste0("data/occurrences/", lower_sp, ".rds"))
 
   rm(obs, coords, lower_sp)
