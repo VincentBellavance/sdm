@@ -49,7 +49,7 @@ for (i in species) {
 
   # Save spdf
   lower_sp <- gsub(" ", "_", tolower(species$accepted))
-  saveRDS(obs, paste0("occurrences/", lower_sp, ".rds"))
+  saveRDS(obs, paste0("data/occurrences/", lower_sp, ".rds"))
 
   rm(obs, coords, lower_sp)
   
