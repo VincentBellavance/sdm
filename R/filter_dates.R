@@ -31,21 +31,12 @@ filter_dates <- function(con, obs, species, buffer) {
 
 time_interval <- function(con, species, buffer) {
 
-  sp_code <- get_sp_code(species$accepted, con)
+  sp_code <- get_sp_code(species, con)
   
   if(length(sp_code) > 0) {
-  
-    species_info <- ebird_scraping(sp_code)
-
-    if(length(species_info) == 0) {
-      return(c("06-01", "09-01"))
-    } else if("Year-round" %in% species_info) {
-      return(NULL)
-    } else if ("Breeding season" %in% species_info) {
-      return(get_migration_dates(species_info, buffer))
-    } else {
-      return(NULL)
-    }
+    ebird_scraping(sp_code)
+  } else {
+    return(c("05-15", "10-01"))
   }
 }
 
@@ -62,52 +53,34 @@ ebird_scraping <- function(sp_code) {
   # Get URL and content of the page  
   url <- paste0("https://ebird.org/science/status-and-trends/",sp_code,"/abundance-map")
   tmp <- rvest::read_html(url)
-  tmp <- rvest::html_nodes(tmp, ".VisProduct-meta-main")
-  tmp <- rvest::html_text(tmp)
+  tmp_primary <- rvest::html_nodes(tmp, ".StVizLegendItem-label-primary")
+  tmp_primary <- rvest::html_text(tmp_primary)
 
-  if(length(tmp) != 0) {
-    # Clean the content
-    cleaned <- strsplit(tmp, split = "\t")[[1]]
-    cleaned <- gsub("\n", "", cleaned)
-    cleaned <- cleaned[-which(nchar(cleaned) %in% c(0,1))]
+  if("Year-round" %in% tmp_primary & 
+     !"Breeding season" %in% tmp_primary) return(NULL)
+
+  if(!"Year-round" %in% tmp_primary & 
+     !"Breeding season" %in% tmp_primary) return(c("05-01", "10-01"))
   
-    return(cleaned)
-  } else {
-    return(NULL)
+  if("Breeding season" %in% tmp_primary) {
+    
+    tmp_primary <- tmp_primary[grep("season", 
+                                    tmp_primary)]
+    tmp_secondary <- rvest::html_nodes(tmp, ".StVizLegendItem-label-secondary")
+    tmp_secondary <- rvest::html_text(tmp_secondary)
+    tmp_secondary <- tmp_secondary[grep("abundance", 
+                                        tmp_secondary, 
+                                        invert = TRUE)]
+
+    dates <- data.frame(period = tmp_primary,
+                        dates = tmp_secondary)
+
+    range <- strsplit(dates[dates$period == "Breeding season", "dates"],
+                      split = " - ")[[1]]
+
+    return(format(as.Date(range[1], format = "%d %b") - buffer, "%m-%d"),
+           format(as.Date(range[2], format = "%d %b") + buffer, "%m-%d"))
   }
-
-  
-}
-
-
-#'
-#' 
-#' 
-#' 
-#' 
-#' 
-
-get_migration_dates <- function(species_info, buffer) {
-  
-  if(species_info[grep("Pre-breeding migratory season", species_info)+1] == "Not shown") {
-    breed <- strsplit(species_info[grep("Breeding season", species_info)+1], split = " - ")[[1]][1]
-    predate <- format(as.Date(breed, format = "%b %d") -7, "%b %d")
-  } else {
-    predate <- strsplit(species_info[grep("Pre-breeding migratory season", species_info)+1], split = " - ")[[1]][2]
-  }
-
-  if(species_info[grep("Post-breeding migratory season", species_info)+1] == "Not shown") {
-    breed <- strsplit(species_info[grep("Breeding season", species_info)+1], split = " - ")[[1]][2]
-    postdate <- format(as.Date(breed, format = "%b %d") + 7, "%b %d")
-  } else {
-    postdate <- strsplit(species_info[grep("Post-breeding migratory season", species_info)+1], split = " - ")[[1]][1]
-  }
-  
-  Sys.setlocale("LC_ALL","en_US.UTF-8")
-  predate <- format(as.Date(predate , format = "%b %d") - buffer, "%m-%d")
-  postdate <- format(as.Date(postdate , format = "%b %d") + buffer, "%m-%d")
-
-  return(c(predate, postdate))
 
 }
 
@@ -137,4 +110,4 @@ get_sp_code <- function(species, con) {
     return(sp_code)
   }
 
-}
+} 

@@ -15,14 +15,17 @@ check_models=analysis/check_models.R
 make_binary_maps=analysis/binarize_maps.R
 
 ## Occurrences
-obs_folder=$(addprefix $(data_folder), /occurrences/)
-obs=$(addsuffix .rds, $(addprefix $(obs_folder), $(species)))
+obs_folder=data/occurrences/
 
 # Output folders
-output_spatial=	$(addprefix $(output_folder), /spatial/)
-output_models=$(addprefix $(output_folder), /models/)
-output_maps=$(addprefix $(output_folder), /maps/)
-output_stack=$(addprefix $(output_folder), /stack/)
+output_spatial=$(addsuffix $(zone), $(addprefix $(output_folder), /spatial/))
+output_models=$(addsuffix $(zone), $(addprefix $(output_folder), /models/))
+output_maps=$(addsuffix $(zone), $(addprefix $(output_folder), /maps/))
+output_stack=$(addsuffix $(zone), $(addprefix $(output_folder), /stack/))
+output_check=$(addsuffix $(zone), $(addprefix $(output_folder), /check/))
+output_log=$(addsuffix $(zone), $(addprefix $(output_folder), /log/))
+output_out=$(addsuffix $(zone), $(addprefix $(output_folder), /out/))
+output_bdi=$(addsuffix $(zone), $(addprefix $(output_folder), /bdi/))
 
 ## Species specific spatial objects
 study_extent=$(addsuffix /study_extent.rds, $(addprefix $(output_spatial), $(species)))
@@ -44,7 +47,7 @@ proj='+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NA
 year_start=1990
 year_end=2020
 window=5
-time_buffer=21
+time_buffer=28
 spat_buffer=300
 pedge=0.03
 num_threads=$(cpu_task)
@@ -64,20 +67,20 @@ $(binary_maps_range) $(binary_maps_occ): $(make_binary_maps) $(maps)
 binary_maps: $(binary_maps_range) $(binary_maps_occ)
 
 # Make map(entire zone + qc) and compute AUC
-$(maps): $(make_maps)
-	@Rscript $< $(species) $(proj)
+$(maps): $(make_maps) 
+	@Rscript $< $(species) $(zone)
 
 maps: $(maps)
 
 # Run SDMs for every species
 $(sdms): $(make_sdms)
-	@Rscript $< $(species) $(year_start) $(year_end) $(window) $(num_threads)
+	@Rscript $< $(species) $(year_start) $(year_end) $(window) $(num_threads) $(zone)
 
 models: $(sdms)
 
 # Make spatial object necessary for the models
 $(study_extent) $(mesh) $(rast) $(filtered_obs): $(make_study_extent)
-	@Rscript $< $(species) $(spat_buffer) $(pedge)
+	@Rscript $< $(species) $(zone) $(spat_buffer) $(pedge)
 
 spatial: $(study_extent) $(mesh) $(rast) $(filtered_obs)
 
@@ -87,17 +90,23 @@ out_dir:
 	mkdir $(addprefix $(output_folder), /checks)
 	mkdir $(addprefix $(output_folder), /log)
 	mkdir $(addprefix $(output_folder), /out)
+	mkdir $(addprefix $(output_folder), /models)
+	mkdir $(addprefix $(output_folder), /stack)
+	mkdir $(addprefix $(output_folder), /maps)
+	mkdir $(addprefix $(output_folder), /spatial)
+	mkdir $(addprefix $(output_folder), /bdi)
 	mkdir $(output_spatial)
 	mkdir $(output_models)
 	mkdir $(output_maps)
 	mkdir $(output_stack)
-	mkdir output/bdi
+	mkdir $(output_check)
+	mkdir $(output_log)
+	mkdir $(output_out)
+	mkdir $(output_bdi)
 
 # Get species occurrences
 $(obs_folder): $(get_obs)
-	@Rscript $< $@ $(year_start) $(year_end) $(window) $(time_buffer) $(proj)
-
-occurrences: $(obs_folder)
+	@Rscript $< $(year_start) $(year_end) $(time_buffer) $(proj)
 
 # Make species objects
 species: $(get_species)
