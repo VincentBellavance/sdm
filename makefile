@@ -11,6 +11,8 @@ make_sdms=analysis/make_models.R
 make_maps=analysis/make_maps.R
 ## Run check
 check_models=analysis/check_models.R
+## Make binary maps
+make_binary_maps=analysis/binarize_maps.R
 
 ## Occurrences
 obs_folder=data/occurrences/
@@ -32,8 +34,10 @@ rast=$(addsuffix /rast.gri, $(addprefix $(output_spatial), $(species)))
 filtered_obs=$(addsuffix /obs.rds, $(addprefix $(output_spatial), $(species)))
 ## SDMs targets (multiple targets - one by species)
 sdms=$(addprefix $(output_models), $(species))
-## Make map(entire zone + qc)
-maps=$(addprefix $(output_maps), $(species))
+## Make maps
+maps=$(addprefix $(addprefix $(output_maps), $(species)), /maps_pocc.gri)
+binary_maps_range=$(addprefix $(addprefix $(output_maps), $(species)), /maps_range.gri)
+binary_maps_occ=$(addprefix $(addprefix $(output_maps), $(species)), /maps_occ.gri)
 ## Check
 checks=$(addprefix $(output_check), $(species))
 
@@ -55,6 +59,12 @@ $(checks): $(check_models)
 	@Rscript $< $(species)
 
 checks: $(checks)
+
+# Make binary maps
+$(binary_maps_range) $(binary_maps_occ): $(make_binary_maps) $(maps)
+	@Rscript $< $(species)
+
+binary_maps: $(binary_maps_range) $(binary_maps_occ)
 
 # Make map(entire zone + qc) and compute AUC
 $(maps): $(make_maps) 
