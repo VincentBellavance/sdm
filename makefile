@@ -18,14 +18,14 @@ make_binary_maps=analysis/binarize_maps.R
 obs_folder=data/occurrences/
 
 # Output folders
-output_spatial=$(addsuffix $(zone), $(addprefix $(output_folder), /spatial/))
-output_models=$(addsuffix $(zone), $(addprefix $(output_folder), /models/))
-output_maps=$(addsuffix $(zone), $(addprefix $(output_folder), /maps/))
-output_stack=$(addsuffix $(zone), $(addprefix $(output_folder), /stack/))
-output_check=$(addsuffix $(zone), $(addprefix $(output_folder), /check/))
-output_log=$(addsuffix $(zone), $(addprefix $(output_folder), /log/))
-output_out=$(addsuffix $(zone), $(addprefix $(output_folder), /out/))
-output_bdi=$(addsuffix $(zone), $(addprefix $(output_folder), /bdi/))
+output_spatial=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /spatial/))
+output_models=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /models/))
+output_maps=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /maps/))
+output_stack=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /stack/))
+output_check=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /check/))
+output_log=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /log/))
+output_out=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /out/))
+output_bdi=$(addsuffix $(addsuffix $(zone), /), $(addprefix $(output_folder), /bdi/))
 
 ## Species specific spatial objects
 study_extent=$(addsuffix /study_extent.rds, $(addprefix $(output_spatial), $(species)))
