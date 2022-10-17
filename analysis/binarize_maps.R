@@ -5,7 +5,6 @@
 library(raster)
 library(INLA)
 library(ggplot2)
-library(rbdi)
 library(rangemap)
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -89,9 +88,9 @@ for(i in 1:length(names(maps))) {
 
   map <- raster::crop(map, rast_qc)
   if(exists("sdms_occ")) {
-    sdms_occ <- raster::stack(sdms_occ, rangemap_qc)
+    sdms_occ <- raster::stack(sdms_occ, map)
   } else {
-    sdms_occ <- raster::stack(rangemap_qc)
+    sdms_occ <- raster::stack(map)
   }
 
   rm(map)
