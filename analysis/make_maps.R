@@ -16,7 +16,7 @@ dir.create(path_sp(species, zone)$maps)
 # Objet spatial propre à chaque espèce
 study_extent <- readRDS(paste0(path_sp(species, zone)$spat, "/study_extent.rds"))
 rast <- raster::raster(paste0(path_sp(species, zone)$spat, "/rast.gri")) # Raster pour aggréger les données par cellule
-qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds")
+qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
 mesh <- readRDS(paste0(path_sp(species, zone)$spat, "/mesh.rds"))
 org <- raster::raster("data/rast.gri")
 
