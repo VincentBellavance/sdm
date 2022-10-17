@@ -31,7 +31,7 @@ obs_all <- readRDS(paste0(path_sp(species, zone)$spat, "/obs.rds"))
 #--- Continue setup ---#
 # Import spatial objects to make models
 q <- readRDS(paste0(path_sp(species, zone)$spat,"/study_extent.rds"))
-qc <- readRDS(paste0("data/",zone,"qc_spacePoly.rds"))
+qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
 mesh <- readRDS(paste0(path_sp(species, zone)$spat,"/mesh.rds"))
 rast <- raster::stack(paste0(path_sp(species, zone)$spat,"/rast.gri"))
 

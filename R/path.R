@@ -19,9 +19,9 @@ path <- function(zone) {
 }
 
 
-path_sp <- function(species, zone ="all") {
+path_sp <- function(species, zone="quebec") {
   list(
-    occ=paste0(path()$occ, species, ".rds"),
+    occ=paste0(path(zone)$occ, species, ".rds"),
     spat=paste0(path(zone)$spat, species),
     mod=paste0(path(zone)$mod, species),
     log=paste0(path(zone)$log, species),
