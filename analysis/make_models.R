@@ -21,27 +21,28 @@ suppressMessages(library(raster))
 # Set variables
 species <- args[1]
 source("R/path.R")
-obs_all <- readRDS(paste0(path_sp(species)$spat, "/obs.rds"))
 year_start <- as.integer(args[2])
 year_end <- as.integer(args[3])
 window_width <- as.integer(args[4])
 num_threads <- as.integer(args[5])
+zone <- args[6]
+obs_all <- readRDS(paste0(path_sp(species, zone)$spat, "/obs.rds"))
 
 #--- Continue setup ---#
 # Import spatial objects to make models
-q <- readRDS(paste0(path_sp(species)$spat,"/study_extent.rds"))
-qc <- readRDS("data/qc_spacePoly.rds")
-mesh <- readRDS(paste0(path_sp(species)$spat,"/mesh.rds"))
-rast <- raster::stack(paste0(path_sp(species)$spat,"/rast.gri"))
+q <- readRDS(paste0(path_sp(species, zone)$spat,"/study_extent.rds"))
+qc <- readRDS(paste0("data/",zone,"qc_spacePoly.rds"))
+mesh <- readRDS(paste0(path_sp(species, zone)$spat,"/mesh.rds"))
+rast <- raster::stack(paste0(path_sp(species, zone)$spat,"/rast.gri"))
 
 source("R/make_spde.R")
 source("R/make_stack.R")
 source("R/success_trials.R")
 
 # Species name as a folders
-dir.create(path_sp(species)$mod)
-dir.create(path_sp(species)$log)
-dir.create(path_sp(species)$stack)
+dir.create(path_sp(species, zone)$mod)
+dir.create(path_sp(species, zone)$log)
+dir.create(path_sp(species, zone)$stack)
 
 #--- Make models ---#
 # First time window
@@ -101,8 +102,8 @@ for(j in 0:(year_end-years[length(years)])) {
                       debug = TRUE)
         }
 
-        saveRDS(model, paste0(path_sp(species)$mod,"/",year,".rds"))
-        saveRDS(Stack, paste0(path_sp(species)$stack,"/",year,".rds"))
+        saveRDS(model, paste0(path_sp(species, zone)$mod,"/",year,".rds"))
+        saveRDS(Stack, paste0(path_sp(species, zone)$stack,"/",year,".rds"))
         previous_model <- model
         rm(model)
         rm(obs)
@@ -112,8 +113,8 @@ for(j in 0:(year_end-years[length(years)])) {
       error=function(cond) {
         cat(paste0("Error ", species, " for year ", year, ": ", cond), 
             sep = "\n\n", 
-            file = paste0(path_sp(species)$log, "/log"), 
-            append = file.exists(paste0(path_sp(species)$log, "/log")))
+            file = paste0(path_sp(species, zone)$log, "/log"), 
+            append = file.exists(paste0(path_sp(species, zone)$log, "/log")))
       }
     )
   }
