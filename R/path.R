@@ -6,52 +6,27 @@
 #'
 #' @return
 
-path <- function() {
+path <- function(zone) {
   list(
-    spat="~/scratch/output/spatial/",
-    mod="~/scratch/output/models/",
-    log="~/scratch/output/log/",
-    stack="~/scratch/output/stack/",
-    check="~/scratch/output/checks/",
-    maps="~/scratch/output/maps/",
+    spat=paste0("~/scratch/output/spatial/",zone,"/"),
+    mod=paste0("~/scratch/output/models/",zone,"/"),
+    log=paste0("~/scratch/output/log/",zone,"/"),
+    stack=paste0("~/scratch/output/stack/",zone,"/"),
+    check=paste0("~/scratch/output/checks/",zone,"/"),
+    maps=paste0("~/scratch/output/maps/",zone,"/"),
     occ="~/projects/def-dgravel/belv1601/sdm/data/occurrences/"
   )
 }
 
 
-#' Title
-#' 
-#' Description
-#'
-#' @param
-#'
-#' @return
-
-path_sp <- function(species) {
+path_sp <- function(species, zone ="all") {
   list(
     occ=paste0(path()$occ, species, ".rds"),
-    spat=paste0(path()$spat, species),
-    mod=paste0(path()$mod, species),
-    log=paste0(path()$log, species),
-    stack=paste0(path()$stack, species),
-    check=paste0(path()$check, species),
-    maps=paste0(path()$maps, species)
+    spat=paste0(path(zone)$spat, species),
+    mod=paste0(path(zone)$mod, species),
+    log=paste0(path(zone)$log, species),
+    stack=paste0(path(zone)$stack, species),
+    check=paste0(path(zone)$check, species),
+    maps=paste0(path(zone)$maps, species)
   )
-}
-
-#' Title
-#' 
-#' Description
-#'
-#' @param
-#'
-#' @return 
-
-path_maps <- function(species, maps_dir = path()$maps) {
-  list(
-    qc = paste0(path_sp(species)$maps, "/qc"),
-    region = paste0(path_sp(species)$maps, "/region"),
-    region_pres = paste0(path_sp(species)$maps, "/region_pres"),
-    region_abs = paste0(path_sp(species)$maps, "/region_abs")
-  ) 
 }
