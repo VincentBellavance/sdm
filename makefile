@@ -53,6 +53,7 @@ pedge=0.03
 num_threads=$(cpu_task)
 t1=0.05
 t2=0.55
+binary_thresh=0.001
 
 # Run checks on models
 $(checks): $(check_models)
@@ -62,7 +63,7 @@ checks: $(checks)
 
 # Make binary maps
 $(binary_maps_range) $(binary_maps_occ): $(make_binary_maps) $(maps)
-	@Rscript $< $(species)
+	@Rscript $< $(species) $(zone) $(binary_thresh)
 
 binary_maps: $(binary_maps_range) $(binary_maps_occ)
 

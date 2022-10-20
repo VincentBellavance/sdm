@@ -9,31 +9,130 @@ library(rangemap)
 
 args <- commandArgs(trailingOnly=TRUE)
 species <- args[1]
+zone <- args[2]
+threshold <- as.integer(args[3])
+
 source("R/path.R")
+
 org <- raster::raster("data/rast.gri")
-qc  <- readRDS("data/qc_spacePoly.rds")
+qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
 rast_qc <- terra::crop(terra::mask(terra::rast(org),
                                    terra::vect(qc)),
                        terra::vect(qc))
 rast_qc <- raster::raster(rast_qc)
 values(rast_qc)[values(rast_qc) == 1] <- 0
 
+# Import spatial opbjects for the species
+study_extent <- readRDS(paste0(path_sp(species, zone)$spat, "/study_extent.rds"))
+rast <- raster::raster(paste0(path_sp(species, zone)$spat, "/rast.gri"))
+qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
+mesh <- readRDS(paste0(path_sp(species, zone)$spat, "/mesh.rds"))
 
-if(!file.exists(paste0(path_sp(species)$maps,"/maps_pocc.gri"))) next
-maps <- raster::stack(paste0(path_sp(species)$maps,"/maps_pocc.gri"))
-maps025 <- raster::stack(paste0(path_sp(species)$maps,"/maps_025.gri"))
+# List models and stacks
+models <- list.files(path_sp(species, zone)$mod)
+Stacks <- list.files(path_sp(species, zone)$stack)
+years <- as.integer(gsub(".rds", "", models))
+
+
+#---------- CREATE BINARY MAP FOR EVERY YEAR ----------#
+
+binary_maps <- lapply(1:length(models), function(x) {
+
+  cat(paste0("Sampling for year ",years[x]," in progress : ",x,"/",length(models)), "\n")
+
+  #---------- POSTERIOR SAMPLINGS ----------#
   
-if(nlayers(maps) != 27) next
+  # Import model
+  mod <- readRDS(paste0(path_sp(species, zone)$mod, "/", models[x]))
+  Stack <- readRDS(paste0(path_sp(species, zone)$stack, "/", Stacks[x]))
 
-names(maps) <- paste0(1992:2018)
-for(i in 1:length(names(maps))) {
+
+  # Make map for entire sPoly to compute AUC
+  # mapBasis
+  mapBasis <- inla.mesh.projector(mesh,
+                                  dims = dim(rast)[2:1],
+                                  xlim = c(xmin(study_extent), 
+                                           xmax(study_extent)),
+                                  ylim = c(ymin(study_extent), 
+                                           ymax(study_extent)),
+                                  crs = mesh$crs)
+
+  ### Find the mesh edges on which predictions should be made
+  ID <- inla.stack.index(Stack, tag="pred")$data
+  pred <- suppressMessages(
+            inla.posterior.sample(100, 
+                                  result = mod, 
+                                  selection = list(APredictor = 0,
+                                                   Predictor = 0),
+                                  intern = TRUE,
+                                  use.improved.mean = FALSE))
+
+  maps_list <- lapply(1:length(pred), function(y) {
     
-  map <- maps[[i]]
-  map025 <- maps025[[i]]
+    fitted <- exp(pred[[y]]$latent[ID,])/(1 + exp(pred[[y]]$latent[ID,]))
+    mapPred <- inla.mesh.project(mapBasis, fitted)
+    mapRaster <- raster::raster(t(mapPred[,ncol(mapPred):1]),
+                                  xmn = min(mapBasis$x), 
+                                  xmx = max(mapBasis$x), 
+                                  ymn = min(mapBasis$y), 
+                                  ymx = max(mapBasis$y),
+                                  crs = mesh$crs)
+    names(mapRaster) <- paste0(years[x])
+    cat("\r", paste0("... Iteration ",y," of ",length(pred)," done!"))
+    if(y == length(pred)) cat("\n")
+    return(mapRaster)
+  })      
+    
+  maps <- do.call(raster::stack, maps_list)
 
-  map[map025<= 0.001] <- 0
-  map[map>0] <- 1
 
+  #---------- BINARIZE MAPS ----------#
+
+  maps_df <- maps[1:raster::ncell(maps)]
+
+  binary_values <- sapply(1:nrow(maps_df), function(i) {
+    distr <- maps_df[i,]
+    if(all(is.na(distr))) return(NA)
+    quant <- quantile(distr, probs=0.025, na.rm = TRUE)
+    if(quant<threshold) {
+      return(0)
+    } else {
+      return(1)
+    }
+  })
+
+  binary_map <- raster(crs = raster::crs(maps),
+                       ext = raster::extent(maps),
+                       resolution = round(raster::res(maps)),
+                       vals = binary_values)
+
+  return(binary_map)
+
+  cat(paste0("Sampling for year ",years[x]," done! : ",x,"/",length(models)), "\n")
+})
+
+# Gather maps in a rasterStack and crop it with Qc sPoly
+binary_maps <- do.call(raster::stack, binary_maps)
+names(binary_maps) <- years
+binary_maps <- terra::crop(
+                terra::mask(terra::rast(binary_maps), 
+                            terra::vect(qc)),
+                terra::vect(qc))
+
+# Save occurrence maps
+raster::writeRaster(binary_maps, 
+                    paste0(path_sp(species, zone)$maps,"/maps_occ"),
+                    overwrite = TRUE)
+
+
+
+#---------- MAKE MAPS OF SPECIES RANGE ----------#
+
+for(i in 1:length(names(binary_maps))) {
+    
+  map <- binary_maps[[i]]
+  
+  TODO: Si toutes les pocc sont de 0, faire une carte de 0
   if(raster::cellStats(map, stat = "max") == 0) next
 
   xy <- raster::coordinates(map)[map[,,] == 1,]
@@ -85,16 +184,6 @@ for(i in 1:length(names(maps))) {
        map025)
     gc()    
   }
-
-  map <- raster::crop(map, rast_qc)
-  if(exists("sdms_occ")) {
-    sdms_occ <- raster::stack(sdms_occ, map)
-  } else {
-    sdms_occ <- raster::stack(map)
-  }
-
-  rm(map)
-  gc()
 }
 
 if(exists("sdms_range")) {
@@ -102,12 +191,6 @@ if(exists("sdms_range")) {
                       paste0(path_sp(species)$maps,"/maps_range"),
                       overwrite = TRUE)
 }
-if(exists("sdms_occ")) {
-  raster::writeRaster(sdms_occ, 
-                      paste0(path_sp(species)$maps,"/maps_occ"),
-                      overwrite = TRUE)
-}
 
 rm(sdms_range)
-rm(sdms_occ)
 gc()
