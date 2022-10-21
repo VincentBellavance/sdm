@@ -61,7 +61,7 @@ $(checks): $(check_models)
 checks: $(checks)
 
 # Make binary maps
-$(binary_maps_range) $(binary_maps_occ): $(make_binary_maps) $(maps)
+$(binary_maps_range) $(binary_maps_occ): $(make_binary_maps)
 	@Rscript $< $(species)
 
 binary_maps: $(binary_maps_range) $(binary_maps_occ)
@@ -86,15 +86,17 @@ spatial: $(study_extent) $(mesh) $(rast) $(filtered_obs)
 
 # Make output folder
 out_dir: 
-	mkdir $(output_folder)
-	mkdir $(addprefix $(output_folder), /checks)
-	mkdir $(addprefix $(output_folder), /log)
-	mkdir $(addprefix $(output_folder), /out)
-	mkdir $(addprefix $(output_folder), /models)
-	mkdir $(addprefix $(output_folder), /stack)
-	mkdir $(addprefix $(output_folder), /maps)
-	mkdir $(addprefix $(output_folder), /spatial)
-	mkdir $(addprefix $(output_folder), /bdi)
+	if ! [ -d $(output_folder) ]; then \
+	  mkdir $(output_folder); \
+	  mkdir $(addprefix $(output_folder), /checks); \
+	  mkdir $(addprefix $(output_folder), /log); \
+	  mkdir $(addprefix $(output_folder), /out); \
+	  mkdir $(addprefix $(output_folder), /models); \
+	  mkdir $(addprefix $(output_folder), /stack); \
+	  mkdir $(addprefix $(output_folder), /maps); \
+	  mkdir $(addprefix $(output_folder), /spatial); \
+	  mkdir $(addprefix $(output_folder), /bdi); \
+	fi
 	mkdir $(output_spatial)
 	mkdir $(output_models)
 	mkdir $(output_maps)
