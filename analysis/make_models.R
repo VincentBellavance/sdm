@@ -68,7 +68,7 @@ for(j in 0:(year_end-years[length(years)])) {
         Stack <- make_stack(mesh, obs, spde)
 
         # Step 8 - Building the model
-        if(j != 0) {
+        if(exists("previous_model")) {
 
           model <- inla(presences ~ 0 + f(field, model = spde),
                       data = inla.stack.data(Stack),
@@ -117,5 +117,10 @@ for(j in 0:(year_end-years[length(years)])) {
             append = file.exists(paste0(path_sp(species, zone)$log, "/log")))
       }
     )
+  } else {
+    cat(paste0("Error ", species, " for year ", year, ": Not enough observations (<25) to build a model"), 
+        sep = "\n\n", 
+        file = paste0(path_sp(species, zone)$log, "/log"), 
+        append = file.exists(paste0(path_sp(species, zone)$log, "/log")))
   }
 }
