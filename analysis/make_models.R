@@ -58,69 +58,61 @@ for(j in 0:(year_end-years[length(years)])) {
   obs <- convert_in_success_trials(obs, rast)
   obs <- obs[obs$observations > 0,]
 
-  if(sum(obs$presences) > 25) {
-    
-    ## Make model and pray that it makes sense
-    tryCatch(
-      expr = {
+  ## Make model and pray that it makes sense
+  tryCatch(
+    expr = {
 
-        spde <- make_spde(mesh)
-        Stack <- make_stack(mesh, obs, spde)
+      spde <- make_spde(mesh)
+      Stack <- make_stack(mesh, obs, spde)
 
-        # Step 8 - Building the model
-        if(exists("previous_model")) {
+      # Step 8 - Building the model
+      if(exists("previous_model")) {
 
-          model <- inla(presences ~ 0 + f(field, model = spde),
-                      data = inla.stack.data(Stack),
-                      family="binomial",
-                      Ntrials=observations,
-                      control.family =list(link="logit"),
-                      control.compute=list(waic=TRUE,
-                                           openmp.strategy = "huge",
-					   config = TRUE),
-                      control.predictor=list(A=inla.stack.A(Stack),
-                                             compute=TRUE, 
-                                             link = 1),
-                      control.mode = list(theta = previous_model$mode$theta, restart = TRUE),
-                      control.inla=list(int.strategy = "ccd"),
-                      verbose = TRUE,
-                      debug = TRUE)
-        } else {
-          model <- inla(presences ~ 0 + f(field, model = spde),
-                      data = inla.stack.data(Stack),
-                      family="binomial",
-                      Ntrials=observations,
-                      control.family =list(link="logit"),
-                      control.compute=list(waic=TRUE,
-                                           openmp.strategy = "huge",
-					   config = TRUE),
-                      control.predictor=list(A=inla.stack.A(Stack),
-                                             compute=TRUE,
-                                             link = 1),
-                      control.inla=list(int.strategy = "ccd"),
-                      verbose = TRUE,
-                      debug = TRUE)
-        }
-
-        saveRDS(model, paste0(path_sp(species, zone)$mod,"/",year,".rds"))
-        saveRDS(Stack, paste0(path_sp(species, zone)$stack,"/",year,".rds"))
-        previous_model <- model
-        rm(model)
-        rm(obs)
-        rm(spde)
-        rm(Stack)
-      },
-      error=function(cond) {
-        cat(paste0("Error ", species, " for year ", year, ": ", cond), 
-            sep = "\n\n", 
-            file = paste0(path_sp(species, zone)$log, "/log"), 
-            append = file.exists(paste0(path_sp(species, zone)$log, "/log")))
+        model <- inla(presences ~ 0 + f(field, model = spde),
+                    data = inla.stack.data(Stack),
+                    family="binomial",
+                    Ntrials=observations,
+                    control.family =list(link="logit"),
+                    control.compute=list(waic=TRUE,
+                                         openmp.strategy = "huge",
+				                                 config = TRUE),
+                    control.predictor=list(A=inla.stack.A(Stack),
+                                           compute=TRUE, 
+                                           link = 1),
+                    control.mode = list(theta = previous_model$mode$theta, restart = TRUE),
+                    control.inla=list(int.strategy = "ccd"),
+                    verbose = TRUE,
+                    debug = TRUE)
+      } else {
+        model <- inla(presences ~ 0 + f(field, model = spde),
+                    data = inla.stack.data(Stack),
+                    family="binomial",
+                    Ntrials=observations,
+                    control.family =list(link="logit"),
+                    control.compute=list(waic=TRUE,
+                                         openmp.strategy = "huge",
+				                                 config = TRUE),
+                    control.predictor=list(A=inla.stack.A(Stack),
+                                           compute=TRUE,
+                                           link = 1),
+                    control.inla=list(int.strategy = "ccd"),
+                    verbose = TRUE,
+                    debug = TRUE)
       }
-    )
-  } else {
-    cat(paste0("Error ", species, " for year ", year, ": Not enough observations (<25) to build a model"), 
-        sep = "\n\n", 
-        file = paste0(path_sp(species, zone)$log, "/log"), 
-        append = file.exists(paste0(path_sp(species, zone)$log, "/log")))
-  }
+
+      saveRDS(model, paste0(path_sp(species, zone)$mod,"/",year,".rds"))
+      saveRDS(Stack, paste0(path_sp(species, zone)$stack,"/",year,".rds"))
+      previous_model <- model
+      rm(model)
+      rm(obs)
+      rm(spde)
+      rm(Stack)
+    },
+    error=function(cond) {
+      cat(paste0("Error ", species, " for year ", year, ": ", cond), 
+          sep = "\n\n", 
+          file = paste0(path_sp(species, zone)$log, "/log"), 
+          append = file.exists(paste0(path_sp(species, zone)$log, "/log")))
+    }
+  )
 }
