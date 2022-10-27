@@ -60,7 +60,7 @@ binary_maps <- lapply(1:length(models), function(x) {
   ### Find the mesh edges on which predictions should be made
   ID <- inla.stack.index(Stack, tag="pred")$data
   pred <- suppressMessages(
-            inla.posterior.sample(100, 
+            inla.posterior.sample(1000, 
                                   result = mod, 
                                   selection = list(APredictor = 0,
                                                    Predictor = 0),
@@ -114,13 +114,16 @@ binary_maps <- lapply(1:length(models), function(x) {
 # Gather maps in a rasterStack and crop it with Qc sPoly
 binary_maps <- do.call(raster::stack, binary_maps)
 names(binary_maps) <- years
-binary_maps <- terra::crop(
-                terra::mask(terra::rast(binary_maps), 
-                            terra::vect(qc)),
-                terra::vect(qc))
+
+binary_maps_final <- terra::crop(
+                       terra::mask(terra::rast(binary_maps), 
+                                   terra::vect(qc)),
+                       terra::vect(qc))
+binary_maps_final <- raster::merge(binary_maps_final, rast_qc)
+
 
 # Save occurrence maps
-raster::writeRaster(binary_maps, 
+raster::writeRaster(binary_maps_final, 
                     paste0(path_sp(species, zone)$maps,"/maps_occ"),
                     overwrite = TRUE)
 
@@ -132,8 +135,19 @@ for(i in 1:length(names(binary_maps))) {
     
   map <- binary_maps[[i]]
   
-  TODO: Si toutes les pocc sont de 0, faire une carte de 0
-  if(raster::cellStats(map, stat = "max") == 0) next
+  if(raster::cellStats(map, stat = "max") == 0) {
+
+    rangemap_qc <- rast_qc  
+    names(rangemap_qc) <- paste0(c(1992:2018)[i])
+
+    if(exists("sdms_range")) {
+      sdms_range <- raster::stack(sdms_range, rangemap_qc)
+    } else {
+      sdms_range <- raster::stack(rangemap_qc)
+    }   
+    
+    next
+  }
 
   xy <- raster::coordinates(map)[map[,,] == 1,]
   xy <- as.data.frame(xy[!is.na(xy[,1]),])
@@ -183,6 +197,21 @@ for(i in 1:length(names(binary_maps))) {
        rangemap,
        map025)
     gc()    
+  } else {
+    
+    rangemap_qc <- terra::crop(
+                     terra::mask(terra::rast(map),
+                                 terra::vect(qc)),
+                     terra::vect(qc))
+    rangemap_qc <- raster::raster(rangemap_qc)
+    rangemap_qc <- raster::merge(rangemap_qc, rast_qc)
+
+    if(exists("sdms_range")) {
+      sdms_range <- raster::stack(sdms_range, rangemap_qc)
+    } else {
+      sdms_range <- raster::stack(rangemap_qc)
+    }
+
   }
 }
 
