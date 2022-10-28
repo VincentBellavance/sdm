@@ -120,7 +120,7 @@ binary_maps_final <- terra::crop(
                                    terra::vect(qc)),
                        terra::vect(qc))
 binary_maps_final <- raster::stack(binary_maps_final)
-binary_maps_final <- raster::merge(rast_qc, binary_maps_final)
+binary_maps_final <- raster::merge(binary_maps_final, rast_qc, overlap = FALSE)
 
 
 # Save occurrence maps
@@ -184,7 +184,7 @@ for(i in 1:length(names(binary_maps))) {
         rangemap_qc)
       rangemap_qc[rangemap_qc == 0] <- 1
 
-      rangemap_qc <- raster::merge(rast_qc, rangemap_qc)
+      rangemap_qc <- raster::merge(rangemap_qc, rast_qc, overlap = FALSE)
       names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
       if(exists("sdms_range")) {
@@ -205,7 +205,7 @@ for(i in 1:length(names(binary_maps))) {
                                  terra::vect(qc)),
                      terra::vect(qc))
     rangemap_qc <- raster::raster(rangemap_qc)
-    rangemap_qc <- raster::merge(rangemap_qc, rast_qc)
+    rangemap_qc <- raster::merge(rangemap_qc, rast_qc, overlap = FALSE)
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
