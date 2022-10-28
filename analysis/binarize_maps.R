@@ -10,7 +10,7 @@ library(rangemap)
 args <- commandArgs(trailingOnly=TRUE)
 species <- args[1]
 zone <- args[2]
-threshold <- as.integer(args[3])
+threshold <- as.numeric(args[3])
 
 source("R/path.R")
 
@@ -51,16 +51,16 @@ binary_maps <- lapply(1:length(models), function(x) {
   # mapBasis
   mapBasis <- inla.mesh.projector(mesh,
                                   dims = dim(rast)[2:1],
-                                  xlim = c(xmin(study_extent), 
-                                           xmax(study_extent)),
-                                  ylim = c(ymin(study_extent), 
-                                           ymax(study_extent)),
+                                  xlim = c(xmin(rast), 
+                                           xmax(rast)),
+                                  ylim = c(ymin(rast), 
+                                           ymax(rast)),
                                   crs = mesh$crs)
 
   ### Find the mesh edges on which predictions should be made
   ID <- inla.stack.index(Stack, tag="pred")$data
   pred <- suppressMessages(
-            inla.posterior.sample(1000, 
+            inla.posterior.sample(10, 
                                   result = mod, 
                                   selection = list(APredictor = 0,
                                                    Predictor = 0),
@@ -119,7 +119,8 @@ binary_maps_final <- terra::crop(
                        terra::mask(terra::rast(binary_maps), 
                                    terra::vect(qc)),
                        terra::vect(qc))
-binary_maps_final <- raster::merge(binary_maps_final, rast_qc)
+binary_maps_final <- raster::stack(binary_maps_final)
+binary_maps_final <- raster::merge(rast_qc, binary_maps_final)
 
 
 # Save occurrence maps
@@ -183,7 +184,7 @@ for(i in 1:length(names(binary_maps))) {
         rangemap_qc)
       rangemap_qc[rangemap_qc == 0] <- 1
 
-      rangemap_qc <- raster::merge(rangemap_qc, rast_qc)
+      rangemap_qc <- raster::merge(rast_qc, rangemap_qc)
       names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
       if(exists("sdms_range")) {
@@ -204,7 +205,7 @@ for(i in 1:length(names(binary_maps))) {
                                  terra::vect(qc)),
                      terra::vect(qc))
     rangemap_qc <- raster::raster(rangemap_qc)
-    rangemap_qc <- raster::merge(rangemap_qc, rast_qc)
+    rangemap_qc <- raster::merge(rast_qc, rangemap_qc)
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
