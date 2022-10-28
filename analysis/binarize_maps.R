@@ -205,7 +205,7 @@ for(i in 1:length(names(binary_maps))) {
                                  terra::vect(qc)),
                      terra::vect(qc))
     rangemap_qc <- raster::raster(rangemap_qc)
-    rangemap_qc <- raster::merge(rast_qc, rangemap_qc)
+    rangemap_qc <- raster::merge(rangemap_qc, rast_qc)
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
