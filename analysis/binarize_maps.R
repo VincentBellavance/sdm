@@ -60,7 +60,7 @@ binary_maps <- lapply(1:length(models), function(x) {
   ### Find the mesh edges on which predictions should be made
   ID <- inla.stack.index(Stack, tag="pred")$data
   pred <- suppressMessages(
-            inla.posterior.sample(10000, 
+            inla.posterior.sample(100, 
                                   result = mod, 
                                   selection = list(APredictor = 0,
                                                    Predictor = 0),
@@ -121,7 +121,7 @@ binary_maps_final <- terra::crop(
                        terra::vect(qc))
 binary_maps_final <- raster::stack(binary_maps_final)
 binary_maps_final <- raster::merge(binary_maps_final, rast_qc, overlap = FALSE)
-
+names(binary_maps_final) <- years
 
 # Save occurrence maps
 raster::writeRaster(binary_maps_final, 
@@ -177,12 +177,15 @@ for(i in 1:length(names(binary_maps))) {
     if(terra::geomtype(rangemap_qc) != "none") {
       rangemap_qc <- as(rangemap_qc, "Spatial")
 
-      rangemap_qc <- raster::crop(
-        raster::rasterize(rangemap_qc,
-                          rast_qc, 
-                          mask = TRUE),
-        rangemap_qc)
+      rangemap_qc <- raster::mask(
+                       raster::crop(
+                         raster::rasterize(rangemap_qc,
+                                           rast_qc, 
+                                           mask = TRUE),
+                         rangemap_qc),
+                       qc)
       rangemap_qc[rangemap_qc == 0] <- 1
+      rangemap_qc[is.na(rangemap_qc)] <- 0
 
       rangemap_qc <- raster::merge(rangemap_qc, rast_qc, overlap = FALSE)
       names(rangemap_qc) <- paste0(c(1992:2018)[i])
@@ -192,11 +195,21 @@ for(i in 1:length(names(binary_maps))) {
       } else {
         sdms_range <- raster::stack(rangemap_qc)
       }
+    } else {
+      
+      rangemap_qc <- rast_qc  
+      names(rangemap_qc) <- paste0(c(1992:2018)[i])
+
+      if(exists("sdms_range")) {
+        sdms_range <- raster::stack(sdms_range, rangemap_qc)
+      } else {
+        sdms_range <- raster::stack(rangemap_qc)
+      }   
+
     }
     
     rm(rangemap_qc,
-       rangemap,
-       map025)
+       rangemap)
     gc()    
   } else {
     
