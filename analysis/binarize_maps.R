@@ -60,7 +60,7 @@ binary_maps <- lapply(1:length(models), function(x) {
   ### Find the mesh edges on which predictions should be made
   ID <- inla.stack.index(Stack, tag="pred")$data
   pred <- suppressMessages(
-            inla.posterior.sample(100, 
+            inla.posterior.sample(10000, 
                                   result = mod, 
                                   selection = list(APredictor = 0,
                                                    Predictor = 0),
@@ -239,7 +239,7 @@ for(i in 1:length(names(binary_maps))) {
 
 if(exists("sdms_range")) {
   raster::writeRaster(sdms_range, 
-                      paste0(path_sp(species)$maps,"/maps_range"),
+                      paste0(path_sp(species, zone)$maps,"/maps_range"),
                       overwrite = TRUE)
 }
 
