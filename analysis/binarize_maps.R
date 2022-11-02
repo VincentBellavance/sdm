@@ -136,9 +136,10 @@ for(i in 1:length(names(binary_maps))) {
     
   map <- binary_maps[[i]]
   
+  # If there is no presence at all
   if(raster::cellStats(map, stat = "max") == 0) {
 
-    rangemap_qc <- rast_qc  
+    rangemap_qc <- rast_qc
     names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
     if(exists("sdms_range")) {
@@ -147,6 +148,8 @@ for(i in 1:length(names(binary_maps))) {
       sdms_range <- raster::stack(rangemap_qc)
     }   
     
+    rm(rangemap_qc)
+
     next
   }
 
@@ -160,7 +163,8 @@ for(i in 1:length(names(binary_maps))) {
     data.frame(Species = species),
     as.data.frame(xy)
   )
-    
+  
+  # Make range maps if there is more than 4 points
   if(nrow(xy) >= 4) {
     rangemap <- rangemap_hull(xy,
                               hull_type = "concave", 
@@ -174,6 +178,7 @@ for(i in 1:length(names(binary_maps))) {
                      terra::vect(terra::aggregate(rangemap@species_range)),
                      terra::vect(qc))
 
+    # If the range intersect with the Quebec polygon
     if(terra::geomtype(rangemap_qc) != "none") {
       rangemap_qc <- as(rangemap_qc, "Spatial")
 
@@ -188,6 +193,7 @@ for(i in 1:length(names(binary_maps))) {
       rangemap_qc[is.na(rangemap_qc)] <- 0
 
       rangemap_qc <- raster::merge(rangemap_qc, rast_qc, overlap = FALSE)
+      rangemap_qc <- raster::mask(rangemap_qc, qc)
       names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
       if(exists("sdms_range")) {
@@ -195,8 +201,10 @@ for(i in 1:length(names(binary_maps))) {
       } else {
         sdms_range <- raster::stack(rangemap_qc)
       }
+
     } else {
       
+      # If the range DOES NOT intersect with the Quebec polygon
       rangemap_qc <- rast_qc  
       names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
@@ -209,23 +217,23 @@ for(i in 1:length(names(binary_maps))) {
     }
     
     rm(rangemap_qc,
-       rangemap)
-    gc()    
+       rangemap) 
+  
   } else {
-    
-    rangemap_qc <- terra::crop(
-                     terra::mask(terra::rast(map),
-                                 terra::vect(qc)),
-                     terra::vect(qc))
-    rangemap_qc <- raster::raster(rangemap_qc)
+
+    # If there is not enough points to make a range polygon
+
+    rangemap_qc <- raster::crop(raster::mask(map, qc),qc)
     rangemap_qc <- raster::merge(rangemap_qc, rast_qc, overlap = FALSE)
+    rangemap_qc <- raster::mask(rangemap_qc, qc)
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
     } else {
       sdms_range <- raster::stack(rangemap_qc)
     }
-
+    rm(rangemap_qc,
+       rangemap)
   }
 }
 
