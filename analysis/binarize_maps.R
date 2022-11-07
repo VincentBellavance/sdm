@@ -60,7 +60,7 @@ binary_maps <- lapply(1:length(models), function(x) {
   ### Find the mesh edges on which predictions should be made
   ID <- inla.stack.index(Stack, tag="pred")$data
   pred <- suppressMessages(
-            inla.posterior.sample(10000, 
+            inla.posterior.sample(1000, 
                                   result = mod, 
                                   selection = list(APredictor = 0,
                                                    Predictor = 0),
@@ -132,10 +132,26 @@ raster::writeRaster(binary_maps_final,
 
 #---------- MAKE MAPS OF SPECIES RANGE ----------#
 
+# Crop and mask the rasters with study_extent to make rangemaps 
+binary_maps <- raster::crop(
+                raster::mask(binary_maps, 
+                             study_extent),
+                qc)
+
 for(i in 1:length(names(binary_maps))) {
     
   map <- binary_maps[[i]]
-  
+
+  # Remove small clumps (3 or less cells together)
+  map_clump <- raster::clump(map, directions = 4)
+  f <- as.data.frame(freq(map_clump))
+  excludeID <- f$value[which(f$count <= 4)]
+  map_clump[map_clump %in% excludeID] <- NA
+  map_clump[!is.na(values(map_clump))] <- 1 # Transform ID in presence
+  values(map)[!is.na(values(map))] <- 0 # Basic map of 0 to merge with map_clump
+
+  map <- raster::merge(map_clump, map)
+
   # If there is no presence at all
   if(raster::cellStats(map, stat = "max") == 0) {
 
