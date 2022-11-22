@@ -35,8 +35,8 @@ maps025 <- stack(paste0(path_sp(species, zone)$maps, "/maps_025.gri"))
 #---------- CREATE BINARY MAP FOR EVERY YEAR ----------#
 
 binary_maps <- maps025 >= threshold
-qcr <- raster::rasterize(qc, binary_maps, getCover = TRUE)
-qcr <- qcr[qcr == 0] <- NA
+qcr <- raster::rasterize(qc, binary_maps[[1]], getCover = TRUE)
+qcr[qcr == 0] <- NA
 binary_maps_final <- raster::crop(raster::mask(binary_maps, qcr), qcr)
 binary_maps_final <- raster::merge(binary_maps_final, rast_qc, overlap = FALSE)
 names(binary_maps_final) <- years
