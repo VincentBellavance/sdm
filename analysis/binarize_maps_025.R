@@ -52,7 +52,7 @@ raster::writeRaster(binary_maps_final,
 
 # Crop and mask the rasters with study_extent to make rangemaps 
 ser <- raster::rasterize(study_extent, binary_maps, getCover = TRUE)
-ser <- ser[ser == 0] <- NA
+ser[ser == 0] <- NA
 binary_maps <- raster::crop(raster::mask(binary_maps, ser), ser)
 
 for(i in 1:length(names(binary_maps))) {
