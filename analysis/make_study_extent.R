@@ -62,9 +62,7 @@ mesh <- INLA::inla.mesh.2d(boundary = study_extent,
 
 # Crop raster with study extent
 rast <- raster::raster("data/rast.gri")
-rast <- terra::mask(terra::crop(terra::rast(rast), terra::vect(study_extent)), terra::vect(study_extent))
-rast <- raster::raster(rast)
-
+rast <- mask_keep_partial(rast, study_extent)
 
 # Save all four objects
 raster::writeRaster(rast, paste0(path_sp(species,zone)$spat,"/rast"))
