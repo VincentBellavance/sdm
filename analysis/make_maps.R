@@ -11,17 +11,18 @@ suppressMessages(library(terra))
 species <- args[1]
 source("R/path.R")
 zone <- args[2]
-dir.create(path_sp(species, zone)$maps)
+output_dir <- args[3]
+dir.create(path_sp(species, output_dir, zone = zone)$maps)
 
 # Objet spatial propre à chaque espèce
-study_extent <- readRDS(paste0(path_sp(species, zone)$spat, "/study_extent.rds"))
-rast <- raster::raster(paste0(path_sp(species, zone)$spat, "/rast.gri")) # Raster pour aggréger les données par cellule
+study_extent <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/study_extent.rds"))
+rast <- raster::raster(paste0(path_sp(species, output_dir, zone = zone)$spat, "/rast.gri")) # Raster pour aggréger les données par cellule
 qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
-mesh <- readRDS(paste0(path_sp(species, zone)$spat, "/mesh.rds"))
+mesh <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/mesh.rds"))
 org <- raster::raster("data/rast.gri")
 
 # List all models from the specific species
-models <- list.files(path_sp(species, zone)$mod)
+models <- list.files(path_sp(species, output_dir, zone = zone)$mod)
 
 # List years of the models
 years <- as.integer(gsub(".rds", "", models))
@@ -31,8 +32,8 @@ if(length(years) == 27) {
 
     #---------- Importer modèle et stack ----------#
 
-    model <- readRDS(paste0(path_sp(species, zone)$mod, "/",year,".rds"))
-    Stack <- readRDS(paste0(path_sp(species, zone)$stack, "/",year,".rds"))
+    model <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$mod, "/",year,".rds"))
+    Stack <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$stack, "/",year,".rds"))
 
 
     #---------- Faire les cartes (moyenne et CI) ----------#
@@ -105,11 +106,11 @@ if(length(years) == 27) {
     ## Si c'est la dernière année, sauvegarder le stack
     if(year == 2018) {
       raster::writeRaster(sdms_pocc, 
-                          paste0(path_sp(species,zone)$maps, "/maps_pocc"))     
+                          paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_pocc"))     
       raster::writeRaster(sdms025, 
-                          paste0(path_sp(species,zone)$maps, "/maps_025"))
+                          paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_025"))
       raster::writeRaster(sdms975, 
-                          paste0(path_sp(species,zone)$maps, "/maps_975"))
+                          paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_975"))
     }
   }
 }

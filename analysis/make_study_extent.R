@@ -14,14 +14,16 @@ suppressMessages(library(raster))
 # Set variables
 species <- args[1]
 zone <- args[2]
+obs_dir <- args[5]
+output_dir <- args[6]
 source("R/path.R")
 q <- readRDS(paste0("data/",zone,"/spacePoly.rds"))
-obs <- readRDS(path_sp(species)$occ)
+obs <- readRDS(path_sp(species, obs_dir = obs_dir)$obs)
 dist_buffer <- as.integer(args[3])
 
 # Make directory to store new spatial object
-if(!exists(path_sp(species, zone)$spat)) {
-  dir.create(path_sp(species, zone)$spat)
+if(!exists(path_sp(species, output_dir, zone = zone)$spat)) {
+  dir.create(path_sp(species, output_dir, zone = zone)$spat)
 }
 
 # Crop observations with new polygon
@@ -65,8 +67,9 @@ rast <- raster::raster("data/rast.gri")
 rast <- mask_keep_partial(rast, study_extent)
 
 # Save all four objects
-raster::writeRaster(rast, paste0(path_sp(species,zone)$spat,"/rast"))
-saveRDS(mesh, paste0(path_sp(species,zone)$spat,"/mesh.rds"))
-saveRDS(obs, paste0(path_sp(species,zone)$spat,"/obs.rds"))
-saveRDS(study_extent, paste0(path_sp(species,zone)$spat,"/study_extent.rds"))
-
+raster::writeRaster(rast, 
+                    paste0(path_sp(species,output_dir,zone=zone)$spat,"/rast"))
+saveRDS(mesh, paste0(path_sp(species,output_dir,zone=zone)$spat,"/mesh.rds"))
+saveRDS(obs, paste0(path_sp(species,output_dir,zone=zone)$spat,"/obs.rds"))
+saveRDS(study_extent, 
+        paste0(path_sp(species,output_dir,zone=zone)$spat,"/study_extent.rds"))

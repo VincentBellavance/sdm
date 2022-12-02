@@ -12,6 +12,7 @@ args <- commandArgs(trailingOnly=TRUE)
 species <- args[1]
 zone <- args[2]
 sensitivity <- as.numeric(args[3])
+output_dir <- args[4]
 years <- 1992:2018
 
 source("R/find_threshold.R")
@@ -24,14 +25,14 @@ rast_qc <- mask_keep_partial(org, qc)
 values(rast_qc)[values(rast_qc) == 1] <- 0
 
 # Import spatial opbjects for the species
-study_extent <- readRDS(paste0(path_sp(species, zone)$spat, "/study_extent.rds"))
-rast <- raster::raster(paste0(path_sp(species, zone)$spat, "/rast.gri"))
+study_extent <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/study_extent.rds"))
+rast <- raster::raster(paste0(path_sp(species, output_dir, zone = zone)$spat, "/rast.gri"))
 qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
-mesh <- readRDS(paste0(path_sp(species, zone)$spat, "/mesh.rds"))
-obs_all <- readRDS(paste0(path_sp(species, zone)$spat, "/obs.rds"))
+mesh <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/mesh.rds"))
+obs_all <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/obs.rds"))
 
 # maps of 2.5e quantile
-maps025 <- stack(paste0(path_sp(species, zone)$maps, "/maps_025.gri"))
+maps025 <- stack(paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_025.gri"))
 
 #---------- CREATE BINARY MAP FOR EVERY YEAR ----------#
 
@@ -50,7 +51,7 @@ names(binary_maps_final) <- years
 
 # Save occurrence maps
 raster::writeRaster(binary_maps_final, 
-                    paste0(path_sp(species, zone)$maps,"/maps_occ"),
+                    paste0(path_sp(species, output_dir, zone = zone)$maps,"/maps_occ"),
                     overwrite = TRUE)
 
 
@@ -163,7 +164,7 @@ for(i in 1:length(names(binary_maps))) {
 
 if(exists("sdms_range")) {
   raster::writeRaster(sdms_range, 
-                      paste0(path_sp(species, zone)$maps,"/maps_range"),
+                      paste0(path_sp(species, output_dir, zone = zone)$maps,"/maps_range"),
                       overwrite = TRUE)
 }
 
