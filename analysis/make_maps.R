@@ -105,6 +105,9 @@ if(length(years) == 27) {
 
     ## Si c'est la dernière année, sauvegarder le stack
     if(year == 2018) {
+      names(sdms_pocc) <- years
+      names(sdms025) <- years
+      names(sdms975) <- years
       raster::writeRaster(sdms_pocc, 
                           paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_pocc"))     
       raster::writeRaster(sdms025, 
