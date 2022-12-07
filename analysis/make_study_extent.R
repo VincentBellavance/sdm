@@ -13,14 +13,17 @@ suppressMessages(library(raster))
 
 # Set variables
 species <- args[1]
+zone <- args[2]
+obs_dir <- args[5]
+output_dir <- args[6]
 source("R/path.R")
-q <- readRDS("data/spacePoly.rds")
-obs <- readRDS(path_sp(species)$occ)
-dist_buffer <- as.integer(args[2])
+q <- readRDS(paste0("data/",zone,"/spacePoly.rds"))
+obs <- readRDS(path_sp(species, obs_dir = obs_dir)$obs)
+dist_buffer <- as.integer(args[3])
 
 # Make directory to store new spatial object
-if(!exists(path_sp(species)$spat)) {
-  dir.create(path_sp(species)$spat)
+if(!exists(path_sp(species, output_dir, zone = zone)$spat)) {
+  dir.create(path_sp(species, output_dir, zone = zone)$spat)
 }
 
 # Crop observations with new polygon
@@ -50,7 +53,7 @@ obs <- as(obs, "Spatial")
 study_extent <- as(study_extent, "Spatial")
 
 # Make mesh
-pedge <- as.numeric(args[3])
+pedge <- as.numeric(args[4])
 edge <- min(c(diff(raster::bbox(study_extent)[1,])*pedge,diff(raster::bbox(study_extent)[2,])*pedge))
 mesh <- INLA::inla.mesh.2d(boundary = study_extent,
                            max.edge = c(edge, edge*5), 
@@ -61,13 +64,12 @@ mesh <- INLA::inla.mesh.2d(boundary = study_extent,
 
 # Crop raster with study extent
 rast <- raster::raster("data/rast.gri")
-rast <- terra::mask(terra::crop(terra::rast(rast), terra::vect(study_extent)), terra::vect(study_extent))
-rast <- raster::raster(rast)
-
+rast <- mask_keep_partial(rast, study_extent)
 
 # Save all four objects
-raster::writeRaster(rast, paste0(path_sp(species)$spat,"/rast"))
-saveRDS(mesh, paste0(path_sp(species)$spat,"/mesh.rds"))
-saveRDS(obs, paste0(path_sp(species)$spat,"/obs.rds"))
-saveRDS(study_extent, paste0(path_sp(species)$spat,"/study_extent.rds"))
-
+raster::writeRaster(rast, 
+                    paste0(path_sp(species,output_dir,zone=zone)$spat,"/rast"))
+saveRDS(mesh, paste0(path_sp(species,output_dir,zone=zone)$spat,"/mesh.rds"))
+saveRDS(obs, paste0(path_sp(species,output_dir,zone=zone)$spat,"/obs.rds"))
+saveRDS(study_extent, 
+        paste0(path_sp(species,output_dir,zone=zone)$spat,"/study_extent.rds"))

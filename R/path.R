@@ -6,52 +6,29 @@
 #'
 #' @return
 
-path <- function() {
+path <- function(zone, output_dir, obs_dir) {
   list(
-    spat="~/scratch/output/spatial/",
-    mod="~/scratch/output/models/",
-    log="~/scratch/output/log/",
-    stack="~/scratch/output/stack/",
-    check="~/scratch/output/checks/",
-    maps="~/scratch/output/maps/",
-    occ="~/projects/def-dgravel/belv1601/sdm/data/occurrences/"
+    spat=paste0(output_dir,"/spatial/",zone,"/"),
+    mod=paste0(output_dir,"/models/",zone,"/"),
+    log=paste0(output_dir,"/log/",zone,"/"),
+    stack=paste0(output_dir,"/stack/",zone,"/"),
+    maps=paste0(output_dir,"/maps/",zone,"/"),
+    obs=obs_dir
   )
 }
 
 
-#' Title
-#' 
-#' Description
-#'
-#' @param
-#'
-#' @return
-
-path_sp <- function(species) {
+path_sp <- function(species,
+                    output_dir = "/home/belv1601/scratch/output", 
+                    obs_dir = "data/occurrences",
+                    zone="quebec") {
   list(
-    occ=paste0(path()$occ, species, ".rds"),
-    spat=paste0(path()$spat, species),
-    mod=paste0(path()$mod, species),
-    log=paste0(path()$log, species),
-    stack=paste0(path()$stack, species),
-    check=paste0(path()$check, species),
-    maps=paste0(path()$maps, species)
+    obs=paste0(path(zone, output_dir, obs_dir)$obs, "/",species, ".rds"),
+    spat=paste0(path(zone, output_dir, obs_dir)$spat, species),
+    mod=paste0(path(zone, output_dir, obs_dir)$mod, species),
+    log=paste0(path(zone, output_dir, obs_dir)$log, species),
+    stack=paste0(path(zone, output_dir, obs_dir)$stack, species),
+    check=paste0(path(zone, output_dir, obs_dir)$check, species),
+    maps=paste0(path(zone, output_dir, obs_dir)$maps, species)
   )
-}
-
-#' Title
-#' 
-#' Description
-#'
-#' @param
-#'
-#' @return 
-
-path_maps <- function(species, maps_dir = path()$maps) {
-  list(
-    qc = paste0(path_sp(species)$maps, "/qc"),
-    region = paste0(path_sp(species)$maps, "/region"),
-    region_pres = paste0(path_sp(species)$maps, "/region_pres"),
-    region_abs = paste0(path_sp(species)$maps, "/region_abs")
-  ) 
 }

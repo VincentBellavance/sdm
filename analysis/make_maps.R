@@ -1,188 +1,119 @@
-#--------------------------------------------------------------
-# Steps:
-# 1. Setup environment
-# 2. In a loop:
-#   2.1: Make map for entire sPoly
-#   2.2: Compute AUC with different threshold
-#   2.3: Crop and mask entire sPoly to get map for Qc only
-#--------------------------------------------------------------
+# Binarize maps with LO_CI
 
-#--- Setup ---#
-# Import arguments
-args = commandArgs(trailingOnly=TRUE)
+#---------- SETUP ----------#
 
-# Import mapSpecies
-suppressMessages(library(INLA))
+args <- commandArgs(trailingOnly=TRUE)
+
 suppressMessages(library(raster))
+suppressMessages(library(INLA))
 suppressMessages(library(terra))
-suppressMessages(library(dplyr))
 
-# Set variables
 species <- args[1]
-proj <- args[2]
-
-# Import functions
-source("R/plot_map.R")
-source("R/make_map.R")
-source("R/make_gif.R")
 source("R/path.R")
-source("R/binarize_maps.R")
+zone <- args[2]
+output_dir <- args[3]
+dir.create(path_sp(species, output_dir, zone = zone)$maps)
 
-# Create directories for species
-dir.create(path_sp(species)$maps)
-
-# Import spatial objects
-study_extent <- readRDS(paste0(path_sp(species)$spat, "/study_extent.rds"))
-qc <- readRDS("data/qc_spacePoly.rds")
-rast <- raster::stack(paste0(path_sp(species)$spat, "/rast.gri"))
-mesh <- readRDS(paste0(path_sp(species)$spat, "/mesh.rds"))
-obs_all <- readRDS(paste0(path_sp(species)$spat, "/obs.rds"))
+# Objet spatial propre à chaque espèce
+study_extent <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/study_extent.rds"))
+rast <- raster::raster(paste0(path_sp(species, output_dir, zone = zone)$spat, "/rast.gri")) # Raster pour aggréger les données par cellule
+qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
+mesh <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/mesh.rds"))
+org <- raster::raster("data/rast.gri")
 
 # List all models from the specific species
-models <- list.files(path_sp(species)$mod)
-Stacks <- list.files(path_sp(species)$stack)
+models <- list.files(path_sp(species, output_dir, zone = zone)$mod)
 
 # List years of the models
 years <- as.integer(gsub(".rds", "", models))
 
-# Loop on models
-for(i in 1:length(models)) {
-  
-  obs <- obs_all[obs_all$year_obs %in% (years[i]-2):(years[i]+2),]
+if(length(years) == 27) {
+  for(year in years) {
 
-  # Import model
-  mod <- readRDS(paste0(path_sp(species)$mod, "/", models[i]))
+    #---------- Importer modèle et stack ----------#
 
-  Stack <- readRDS(paste0(path_sp(species)$stack, "/", Stacks[i]))
+    model <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$mod, "/",year,".rds"))
+    Stack <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$stack, "/",year,".rds"))
 
-  # Make map for entire sPoly to compute AUC
-  map <- make_map(type = "mean",
-                  mesh,
-                  mod,
-                  rast,
-                  sPoly = study_extent,
-                  year = years[i],
-                  Stack)
-  map_0025 <- make_map(type = "0.025quant",
-			                 mesh,
-			                 mod,
-			                 rast,
-			                 sPoly = study_extent,
-			                 year = years[i],
-			                 Stack) 
-  map_0975 <- make_map(type = "0.975quant",
-                       mesh,
-                       mod, 
-                       rast,
-                       sPoly = study_extent,
-                       year = years[i],
-                       Stack)  
-  
-  # make binary maps
-  ## Find threshold
-  thresh_spec_sens <- find_threshold(map, obs, "spec_sens")
-  map_spec_sens <- binarize_pred(map, thresh_spec_sens, map_0025)
 
-  # make binary maps
-  ## Find threshold
-  thresh_sensitivity <- find_threshold(map, obs, "sensitivity")
-  map_sensitivity <- binarize_pred(map, thresh_sensitivity, map_0025)
+    #---------- Faire les cartes (moyenne et CI) ----------#
 
-  # make binary maps
-  ## Find threshold
-  thresh_kappa <- find_threshold(map, obs, "kappa")
-  map_kappa <- binarize_pred(map, thresh_kappa, map_0025)
+    mapBasis <- inla.mesh.projector(mesh,
+                                    dims = dim(rast)[2:1],
+                                    xlim = c(xmin(study_extent), 
+                                             xmax(study_extent)),
+                                    ylim = c(ymin(study_extent), 
+                                             ymax(study_extent)),
+                                    crs = mesh$crs)
 
-  # make binary maps
-  ## Find threshold
-  thresh_prevalence <- find_threshold(map, obs, "prevalence")
-  map_prevalence <- binarize_pred(map, thresh_prevalence, map_0025)
+    ## Trouver les arêtes du mesh pour y faire les prédiction
+    ID <- inla.stack.index(Stack, tag="pred")$data
 
-  # make binary maps
-  ## Find threshold
-  thresh_equal_sens_spec <- find_threshold(map, obs, "equal_sens_spec")
-  map_equal_sens_spec <- binarize_pred(map, thresh_equal_sens_spec, map_0025)
+    ## Prédictions avec 0.5quant
+    mapPred <- inla.mesh.project(mapBasis, 
+                                 model$summary.fitted.values[["0.5quant"]][ID])
 
-  # Create stack if it doesn't exist, else stack the map to the existing one
-  if(exists("map_stack_pocc")) {
-    map_stack_pocc <- raster::stack(map_stack_pocc, map)
-  } else {
-    map_stack_pocc <- raster::stack(map)
+    ## Convertir en raster
+    map <- raster::raster(t(mapPred[,ncol(mapPred):1]),
+                            xmn = min(mapBasis$x), xmx = max(mapBasis$x), 
+                            ymn = min(mapBasis$y), ymx = max(mapBasis$y),
+                            crs = mesh$crs)
+
+    ## Prédictions avec 0.025 & 0.975 quant
+    mapPred025 <- inla.mesh.project(mapBasis, 
+                                model$summary.fitted.values[["0.025quant"]][ID])
+    mapPred975 <- inla.mesh.project(mapBasis, 
+                                model$summary.fitted.values[["0.975quant"]][ID])
+
+    ## Convertir en raster
+    map025 <- raster::raster(t(mapPred025[,ncol(mapPred025):1]),
+                               xmn = min(mapBasis$x), xmx = max(mapBasis$x), 
+                               ymn = min(mapBasis$y), ymx = max(mapBasis$y),
+                               crs = mesh$crs)
+    map975 <- raster::raster(t(mapPred975[,ncol(mapPred975):1]),
+                               xmn = min(mapBasis$x), xmx = max(mapBasis$x), 
+                               ymn = min(mapBasis$y), ymx = max(mapBasis$y),
+                               crs = mesh$crs)
+
+
+    #---------- Project Raster pour être sur le même origin ----------#
+
+    map_pocc <- raster::projectRaster(map, org)
+    map025 <- raster::projectRaster(map025, org)
+    map975 <- raster::projectRaster(map975, org)
+
+    #---------- Stack et sauvegarder les maps ----------#
+
+    ## Stack des cartes avec pocc de chaque année ensemble
+    if(exists("sdms_pocc")) {
+      sdms_pocc <- raster::stack(sdms_pocc, map_pocc)
+    } else {
+      sdms_pocc <- raster::stack(map_pocc)
+    }
+
+    ## Stack des cartes de chaque année ensemble
+    if(exists("sdms025")) {
+      sdms025 <- raster::stack(sdms025, map025)
+    } else {
+      sdms025 <- raster::stack(map025)
+    }
+    if(exists("sdms975")) {
+      sdms975 <- raster::stack(sdms975, map975)
+    } else {
+      sdms975 <- raster::stack(map975)
+    }
+
+    ## Si c'est la dernière année, sauvegarder le stack
+    if(year == 2018) {
+      names(sdms_pocc) <- years
+      names(sdms025) <- years
+      names(sdms975) <- years
+      raster::writeRaster(sdms_pocc, 
+                          paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_pocc"))     
+      raster::writeRaster(sdms025, 
+                          paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_025"))
+      raster::writeRaster(sdms975, 
+                          paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_975"))
+    }
   }
-  
-  # Create stack if it doesn't exist, else stack the map to the existing one
-  if(exists("map_stack_uncert")) {
-    map_stack_uncert <- raster::stack(map_stack_uncert, map_0025, map_0975)
-  } else {
-    map_stack_uncert <- raster::stack(map_0025, map_0975)
-  }
-
-  # Create binary map stack
-  if(exists("map_stack_spec_sens")) {
-    map_stack_spec_sens <- raster::stack(map_stack_spec_sens, map_spec_sens)
-  } else {
-    map_stack_spec_sens <- raster::stack(map_spec_sens)
-  }
-
-  # Create binary map stack
-  if(exists("map_stack_sensitivity")) {
-    map_stack_sensitivity <- raster::stack(map_stack_sensitivity, map_sensitivity)
-  } else {
-    map_stack_sensitivity <- raster::stack(map_sensitivity)
-  }
-
-  # Create binary map stack
-  if(exists("map_stack_kappa")) {
-    map_stack_kappa <- raster::stack(map_stack_kappa, map_kappa)
-  } else {
-    map_stack_kappa <- raster::stack(map_kappa)
-  }
-
-  # Create binary map stack
-  if(exists("map_stack_prevalence")) {
-    map_stack_prevalence <- raster::stack(map_stack_prevalence, map_prevalence)
-  } else {
-    map_stack_prevalence <- raster::stack(map_prevalence)
-  }
-
-  # Create binary map stack
-  if(exists("map_stack_equal_sens_spec")) {
-    map_stack_equal_sens_spec <- raster::stack(map_stack_equal_sens_spec, map_equal_sens_spec)
-  } else {
-    map_stack_equal_sens_spec <- raster::stack(map_equal_sens_spec)
-  }
-
-  # Clean  
-  rm(map_pocc)
-  rm(map_0025)
-  rm(map_0975)
-  rm(map_spec_sens)
-  rm(map_sensitivity)
-  rm(map_kappa)
-  rm(map_prevalence)
-  rm(map_equal_sens_spec)
-  rm(mod)
-  rm(Stack)
-
-  # Save the stack of maps if it's the last year
-  if(i == length(models)) {
-    raster::writeRaster(map_stack_pocc, paste0(path_sp(species)$maps, "/maps_pocc"))
-    raster::writeRaster(map_stack_uncert, paste0(path_sp(species)$maps, "/maps_uncert"))
-    raster::writeRaster(map_stack_spec_sens, paste0(path_sp(species)$maps, "/maps_spec_sens"))
-    raster::writeRaster(map_stack_sensitivity, paste0(path_sp(species)$maps, "/maps_sensitivity"))  
-    raster::writeRaster(map_stack_kappa, paste0(path_sp(species)$maps, "/maps_kappa"))
-    raster::writeRaster(map_stack_prevalence, paste0(path_sp(species)$maps, "/maps_prevalence"))
-    raster::writeRaster(map_stack_equal_sens_spec, paste0(path_sp(species)$maps, "/maps_equal_sens_spec"))
-  }
-
-  cat(paste0(years[i], " done\n"))
 }
-
-# Clean
-rm(map_stack_pocc)
-rm(map_stack_uncert)
-rm(map_stack_spec_sens)
-rm(map_stack_sensitivity)
-rm(map_stack_kappa)
-rm(map_stack_prevalence)
-rm(map_stack_equal_sens_spec)

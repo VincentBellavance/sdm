@@ -61,8 +61,10 @@ sdms <- lapply(species, function(i) {
       # mapBasis
       mapBasis <- inla.mesh.projector(mesh,
                                       dims = dim(rast)[2:1],
-                                      xlim = c(xmin(study_extent), xmax(study_extent)),
-                                      ylim = c(ymin(study_extent), ymax(study_extent)),
+                                      xlim = c(xmin(study_extent), 
+                                               xmax(study_extent)),
+                                      ylim = c(ymin(study_extent), 
+                                               ymax(study_extent)),
                                       crs = mesh$crs)
 
       ### Find the mesh edges on which predictions should be made
@@ -70,15 +72,18 @@ sdms <- lapply(species, function(i) {
 
       pred <- inla.posterior.sample(1, 
                                     result = mod, 
-                                    selection = list(APredictor = 0, Predictor = 0),
+                                    selection = list(APredictor = 0,
+                                                     Predictor = 0),
                                     intern = TRUE,
                                     use.improved.mean = FALSE)
 
       fitted <- exp(pred[[1]]$latent[ID,])/(1 + exp(pred[[1]]$latent[ID,]))
       mapPred <- inla.mesh.project(mapBasis, fitted)
       mapRaster <- raster::raster(t(mapPred[,ncol(mapPred):1]),
-                                    xmn = min(mapBasis$x), xmx = max(mapBasis$x), 
-                                    ymn = min(mapBasis$y), ymx = max(mapBasis$y),
+                                    xmn = min(mapBasis$x), 
+                                    xmx = max(mapBasis$x), 
+                                    ymn = min(mapBasis$y), 
+                                    ymx = max(mapBasis$y),
                                     crs = mesh$crs)
       mapRaster <- terra::mask(terra::rast(mapRaster), terra::vect(qc))
       map <- raster::raster(mapRaster)

@@ -4,7 +4,7 @@ make_stack <- function(mesh, obs, spde) {
 
 
         # Step 4 - A matrix
-	if("x" %in% colnames(as.data.frame(obs_all))){
+	if("x" %in% colnames(as.data.frame(obs))){
 	  xy <- as.matrix(cbind(obs$x, obs$y))
         } else {
 	  xy <- as.matrix(cbind(obs$lon, obs$lat))
