@@ -27,6 +27,7 @@ rast <- raster::raster(paste0(path_sp(species, output_dir, zone = zone)$spat, "/
 qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
 mesh <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/mesh.rds"))
 obs_all <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/obs.rds"))
+years <- attributes(obs_all)$years_mod
 
 # maps of 2.5e quantile
 maps025 <- stack(paste0(path_sp(species, output_dir, zone = zone)$maps, "/maps_025.gri"))
