@@ -60,7 +60,9 @@ raster::writeRaster(binary_maps_final,
 binary_maps <- mask_keep_partial(binary_maps, study_extent)
 
 for(i in 1:length(names(binary_maps))) {
-    
+  
+  cat(paste0("Map ", i, " from ", species), "\n")
+
   map <- binary_maps[[i]]
 
   # Remove small clumps (3 or less cells together)
@@ -72,6 +74,8 @@ for(i in 1:length(names(binary_maps))) {
   values(map)[!is.na(values(map))] <- 0 # Basic map of 0 to merge with map_clump
 
   map <- raster::merge(map_clump, map)
+
+  cat("Clump done", "\n")
 
   # If there is no presence at all
   if(raster::cellStats(map, stat = "max") == 0) {
@@ -100,6 +104,8 @@ for(i in 1:length(names(binary_maps))) {
     as.data.frame(xy)
   )
   
+  cat("Coords done", "\n")
+
   # Make range maps if there is more than 4 points
   if(nrow(xy) >= 4) {
     rangemap <- rangemap_hull(xy,
@@ -114,8 +120,8 @@ for(i in 1:length(names(binary_maps))) {
                                      rast_qc,
                                      getCover = TRUE)
     rangemap_qc[rangemap_qc > 0] <- 1
-    rangemap_qc <- raster::mask(rangemap_qc, rast_qc)
-    rangemap_qc <- raster::crop(rangemap_qc, rast_qc, snap = "out")
+
+    cat("Hull done", "\n")
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
@@ -130,7 +136,7 @@ for(i in 1:length(names(binary_maps))) {
 
     # If there is not enough points to make a range polygon
 
-    rangemap_qc <- raster::mask(rangemap_qc, rast_qc)
+    rangemap_qc <- raster::mask(map, rast_qc)
     rangemap_qc <- raster::crop(rangemap_qc, rast_qc, snap = "out")
 
     if(exists("sdms_range")) {
