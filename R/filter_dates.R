@@ -78,8 +78,8 @@ ebird_scraping <- function(sp_code) {
     range <- strsplit(dates[dates$period == "Breeding season", "dates"],
                       split = " - ")[[1]]
 
-    return(format(as.Date(range[1], format = "%d %b") - buffer, "%m-%d"),
-           format(as.Date(range[2], format = "%d %b") + buffer, "%m-%d"))
+    return(c(format(as.Date(range[1], format = "%d %b") - buffer, "%m-%d"),
+             format(as.Date(range[2], format = "%d %b") + buffer, "%m-%d")))
   }
 
 }

@@ -21,100 +21,102 @@ suppressMessages(library(raster))
 # Set variables
 species <- args[1]
 source("R/path.R")
-year_start <- as.integer(args[2])
-year_end <- as.integer(args[3])
-window_width <- as.integer(args[4])
-num_threads <- as.integer(args[5])
-zone <- args[6]
-output_dir <- args[7]
-obs_all <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/obs.rds"))
+window_width <- as.integer(args[2])
+half_wind <- (window_width-1)/2
+num_threads <- as.integer(args[3])
+zone <- args[4]
+output_dir <- args[5]
 
-#--- Continue setup ---#
-# Import spatial objects to make models
-q <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat,"/study_extent.rds"))
-qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
-mesh <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat,"/mesh.rds"))
-rast <- raster::stack(paste0(path_sp(species, output_dir, zone = zone)$spat,"/rast.gri"))
+if(length(list.files(path_sp(species, output_dir, zone = zone)$spat)) != 0) {
 
-source("R/make_spde.R")
-source("R/make_stack.R")
-source("R/success_trials.R")
+  obs_all <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/obs.rds"))
 
-# Species name as a folders
-dir.create(path_sp(species, output_dir, zone = zone)$mod)
-dir.create(path_sp(species, output_dir, zone = zone)$log)
-dir.create(path_sp(species, output_dir, zone = zone)$stack)
+  #--- Continue setup ---#
+  # Import spatial objects to make models
+  q <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat,"/study_extent.rds"))
+  qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
+  mesh <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat,"/mesh.rds"))
+  rast <- raster::stack(paste0(path_sp(species, output_dir, zone = zone)$spat,"/rast.gri"))
 
-#--- Make models ---#
-# First time window
-years <- year_start:(year_start+window_width-1)
+  source("R/make_spde.R")
+  source("R/make_stack.R")
+  source("R/success_trials.R")
 
-# Make models for every time windows
-for(j in 0:(year_end-years[length(years)])) {
- ## Mean year of the time window
-  year <- mean((years+j))
+  # Species name as a folders
+  dir.create(path_sp(species, output_dir, zone = zone)$mod)
+  dir.create(path_sp(species, output_dir, zone = zone)$log)
+  dir.create(path_sp(species, output_dir, zone = zone)$stack)
 
-   ## Filter observations
-  obs <- obs_all[obs_all$year_obs %in% (years+j),]
-  obs <- convert_in_success_trials(obs, rast)
-  obs <- obs[obs$observations > 0,]
+  #--- Make models ---#
+  # First time window
+  years <- attributes(obs_all)$years_mod
 
-  ## Make model and pray that it makes sense
-  tryCatch(
-    expr = {
+  # Make models for every time windows
+  for(j in years) {
+    
+    ## Filter observations
+    obs <- obs_all[obs_all$year_obs %in% (j-half_wind):(j+half_wind),]
+    obs <- convert_in_success_trials(obs, rast)
+    obs <- obs[obs$observations > 0,]
 
-      spde <- make_spde(mesh)
-      Stack <- make_stack(mesh, obs, spde)
+    ## Make model and pray that it makes sense
+    tryCatch(
+      expr = {
 
-      # Step 8 - Building the model
-      if(exists("previous_model")) {
+        spde <- make_spde(mesh)
+        Stack <- make_stack(mesh, obs, spde)
 
-        model <- inla(presences ~ 0 + f(field, model = spde),
-                    data = inla.stack.data(Stack),
-                    family="binomial",
-                    Ntrials=observations,
-                    control.family =list(link="logit"),
-                    control.compute=list(waic=TRUE,
-                                         openmp.strategy = "huge",
-				                                 config = TRUE),
-                    control.predictor=list(A=inla.stack.A(Stack),
-                                           compute=TRUE, 
-                                           link = 1),
-                    control.mode = list(theta = previous_model$mode$theta,
-                                        restart = TRUE),
-                    control.inla=list(int.strategy = "ccd"),
-                    verbose = TRUE,
-                    debug = TRUE)
-      } else {
-        model <- inla(presences ~ 0 + f(field, model = spde),
-                    data = inla.stack.data(Stack),
-                    family="binomial",
-                    Ntrials=observations,
-                    control.family =list(link="logit"),
-                    control.compute=list(waic=TRUE,
-                                         openmp.strategy = "huge",
-				                                 config = TRUE),
-                    control.predictor=list(A=inla.stack.A(Stack),
-                                           compute=TRUE,
-                                           link = 1),
-                    control.inla=list(int.strategy = "ccd"),
-                    verbose = TRUE,
-                    debug = TRUE)
+        # Step 8 - Building the model
+        if(exists("previous_model")) {
+
+          model <- inla(presences ~ 0 + f(field, model = spde),
+                      data = inla.stack.data(Stack),
+                      family="binomial",
+                      Ntrials=observations,
+                      control.family =list(link="logit"),
+                      control.compute=list(waic=TRUE,
+                                           openmp.strategy = "huge",
+  				                                 config = TRUE),
+                      control.predictor=list(A=inla.stack.A(Stack),
+                                             compute=TRUE, 
+                                             link = 1),
+                      control.mode = list(theta = previous_model$mode$theta,
+                                          restart = TRUE),
+                      control.inla=list(int.strategy = "ccd"),
+                      verbose = TRUE,
+                      debug = TRUE)
+        } else {
+          model <- inla(presences ~ 0 + f(field, model = spde),
+                      data = inla.stack.data(Stack),
+                      family="binomial",
+                      Ntrials=observations,
+                      control.family =list(link="logit"),
+                      control.compute=list(waic=TRUE,
+                                           openmp.strategy = "huge",
+  				                                 config = TRUE),
+                      control.predictor=list(A=inla.stack.A(Stack),
+                                             compute=TRUE,
+                                             link = 1),
+                      control.inla=list(int.strategy = "ccd"),
+                      verbose = TRUE,
+                      debug = TRUE)
+        }
+
+        saveRDS(model, paste0(path_sp(species, output_dir, zone = zone)$mod,"/",j,".rds"))
+        saveRDS(Stack, paste0(path_sp(species, output_dir, zone = zone)$stack,"/",j,".rds"))
+        previous_model <- model
+        rm(model)
+        rm(obs)
+        rm(spde)
+        rm(Stack)
+      },
+      error=function(cond) {
+        cat(paste0("Error ", species, " for year ", j, ": ", cond), 
+            sep = "\n\n", 
+            file = paste0(path_sp(species, output_dir, zone = zone)$log, "/log"), 
+            append = file.exists(paste0(path_sp(species, output_dir, zone = zone)$log, "/log")))
       }
+    )
+  }
 
-      saveRDS(model, paste0(path_sp(species, output_dir, zone = zone)$mod,"/",year,".rds"))
-      saveRDS(Stack, paste0(path_sp(species, output_dir, zone = zone)$stack,"/",year,".rds"))
-      previous_model <- model
-      rm(model)
-      rm(obs)
-      rm(spde)
-      rm(Stack)
-    },
-    error=function(cond) {
-      cat(paste0("Error ", species, " for year ", year, ": ", cond), 
-          sep = "\n\n", 
-          file = paste0(path_sp(species, output_dir, zone = zone)$log, "/log"), 
-          append = file.exists(paste0(path_sp(species, output_dir, zone = zone)$log, "/log")))
-    }
-  )
 }

@@ -13,7 +13,6 @@ species <- args[1]
 zone <- args[2]
 sensitivity <- as.numeric(args[3])
 output_dir <- args[4]
-years <- 1992:2018
 
 source("R/find_threshold.R")
 source("R/mask_keep_partial.R")
@@ -47,7 +46,7 @@ binary_maps <- lapply(1:length(names(maps025)), function(x) {
 binary_maps <- do.call(raster::stack, binary_maps)
 binary_maps_final <- mask_keep_partial(binary_maps, qc)
 binary_maps_final <- raster::merge(binary_maps_final, rast_qc, overlap = FALSE)
-names(binary_maps_final) <- years
+names(binary_maps_final) <- attributes(obs_all)$years_mod
 
 # Save occurrence maps
 raster::writeRaster(binary_maps_final, 
@@ -79,7 +78,6 @@ for(i in 1:length(names(binary_maps))) {
   if(raster::cellStats(map, stat = "max") == 0) {
 
     rangemap_qc <- rast_qc
-    names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
@@ -120,7 +118,6 @@ for(i in 1:length(names(binary_maps))) {
                                        getCover = TRUE)
       rangemap_qc[rangemap_qc > 0] <- 1
       rangemap_qc <- raster::mask(rangemap_qc, rast_qc)
-      names(rangemap_qc) <- paste0(c(1992:2018)[i])
 
       if(exists("sdms_range")) {
         sdms_range <- raster::stack(sdms_range, rangemap_qc)
@@ -131,8 +128,7 @@ for(i in 1:length(names(binary_maps))) {
     } else {
       
       # If the range DOES NOT intersect with the Quebec polygon
-      rangemap_qc <- rast_qc  
-      names(rangemap_qc) <- paste0(c(1992:2018)[i])
+      rangemap_qc <- rast_qc
 
       if(exists("sdms_range")) {
         sdms_range <- raster::stack(sdms_range, rangemap_qc)
@@ -163,6 +159,7 @@ for(i in 1:length(names(binary_maps))) {
 }
 
 if(exists("sdms_range")) {
+  names(sdms_range) <- attributes(obs_all)$years_mod
   raster::writeRaster(sdms_range, 
                       paste0(path_sp(species, output_dir, zone = zone)$maps,"/maps_range"),
                       overwrite = TRUE)

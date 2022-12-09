@@ -1,4 +1,8 @@
 #--- Setup ---#
+
+# Import library
+suppressMessages(library(raster))
+
 # Import arguments
 args = commandArgs(trailingOnly=TRUE)
 
@@ -7,10 +11,11 @@ species <- suppressWarnings(as.vector(read.table("data/species_vect.txt", sep = 
 species <- gsub("_", " ", species)
 species <- stringr::str_to_sentence(species)
 year_start <- as.integer(args[1]) # 1990
-year_end <- as.integer(args[2]) # 2020
+year_end <- as.integer(args[2]) # 2019
 buffer <- as.integer(args[3]) # 21
 proj <- args[4] #"+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NAD83 +units=km +no_defs +ellps=GRS80 +towgs84=0,0,0"
-obs_dir <- args[5]
+time_window <- as.integer(args[5])
+obs_dir <- args[6]
 
 # Import functions
 source("R/get_obs.R")
@@ -19,7 +24,7 @@ source("R/extract_coords.R")
 source("R/path.R")
 
 # Create occurrence folder
-dir.create(obs_folder)
+dir.create(obs_dir)
 
 # Connection to DB
 con <- atlasBE::conn(user=Sys.getenv("user"), pwd=Sys.getenv("pwd"), host=Sys.getenv("host"), dbname=Sys.getenv("dbname"))
@@ -54,7 +59,7 @@ for (i in species) {
 
   # Save spdf
   lower_sp <- gsub(" ", "_", tolower(i))
-  saveRDS(obs, path_sp(lower_sp, obs_dir = obs_dir))
+  saveRDS(obs, path_sp(lower_sp, obs_dir = obs_dir)$obs)
 
   rm(obs, coords, lower_sp)
   

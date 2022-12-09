@@ -2,7 +2,7 @@
 ## Get species names
 get_species=analysis/species.R
 ## Get species occurrences
-get_occ=analysis/obs.R
+get_obs=analysis/obs.R
 ## Make species specific spatial objects necessaries
 make_study_extent=analysis/make_study_extent.R
 ## Analysis
@@ -40,7 +40,7 @@ binary_maps_occ=$(addprefix $(addprefix $(output_maps), $(species)), /maps_occ.g
 res=10
 proj='+proj=lcc +lat_0=47 +lon_0=-75 +lat_1=49 +lat_2=62 +x_0=0 +y_0=0 +datum=NAD83 +units=km +no_defs +ellps=GRS80 +towgs84=0,0,0'
 year_start=1990
-year_end=2020
+year_end=2019
 window=5
 time_buffer=28
 spat_buffer=300
@@ -62,13 +62,13 @@ maps: $(maps)
 
 # Run SDMs for every species
 $(sdms): $(make_sdms)
-	@Rscript $< $(species) $(year_start) $(year_end) $(window) $(num_threads) $(zone) $(output_dir)
+	@Rscript $< $(species) $(window) $(num_threads) $(zone) $(output_dir)
 
 models: $(sdms)
 
 # Make spatial object necessary for the models
 $(study_extent) $(mesh) $(rast) $(filtered_obs): $(make_study_extent)
-	@Rscript $< $(species) $(zone) $(spat_buffer) $(pedge) $(obs_dir) $(output_dir)
+	@Rscript $< $(species) $(zone) $(spat_buffer) $(pedge) $(obs_dir) $(output_dir) $(year_start) $(year_end) $(time_window)
 
 spatial: $(study_extent) $(mesh) $(rast) $(filtered_obs)
 
@@ -94,7 +94,9 @@ out_dir:
 
 # Get species occurrences
 $(obs_dir): $(get_obs)
-	@Rscript $< $(year_start) $(year_end) $(time_buffer) $(proj) $(obs_dir)
+	@Rscript $< $(year_start) $(year_end) $(time_buffer) $(proj) $(window) $(obs_dir)
+
+occurrences: $(obs_dir)
 
 # Make species objects
 species: $(get_species)
