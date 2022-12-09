@@ -110,31 +110,17 @@ for(i in 1:length(names(binary_maps))) {
                               extent_of_occurrence = FALSE,
                               area_of_occupancy = FALSE)
 
-    # If the range intersect with the Quebec polygon
-    if(terra::geomtype(rangemap_qc) != "none") {
-      rangemap_qc <- raster::rasterize(rangemap@species_range,
-                                       rast_qc,
-                                       getCover = TRUE)
-      rangemap_qc[rangemap_qc > 0] <- 1
-      rangemap_qc <- raster::mask(rangemap_qc, rast_qc)
+    rangemap_qc <- raster::rasterize(rangemap@species_range,
+                                     rast_qc,
+                                     getCover = TRUE)
+    rangemap_qc[rangemap_qc > 0] <- 1
+    rangemap_qc <- raster::mask(rangemap_qc, rast_qc)
+    rangemap_qc <- raster::crop(rangemap_qc, rast_qc, snap = "out")
 
-      if(exists("sdms_range")) {
-        sdms_range <- raster::stack(sdms_range, rangemap_qc)
-      } else {
-        sdms_range <- raster::stack(rangemap_qc)
-      }
-
+    if(exists("sdms_range")) {
+      sdms_range <- raster::stack(sdms_range, rangemap_qc)
     } else {
-      
-      # If the range DOES NOT intersect with the Quebec polygon
-      rangemap_qc <- rast_qc
-
-      if(exists("sdms_range")) {
-        sdms_range <- raster::stack(sdms_range, rangemap_qc)
-      } else {
-        sdms_range <- raster::stack(rangemap_qc)
-      }   
-
+      sdms_range <- raster::stack(rangemap_qc)
     }
     
     rm(rangemap_qc,
@@ -144,8 +130,8 @@ for(i in 1:length(names(binary_maps))) {
 
     # If there is not enough points to make a range polygon
 
-    rangemap_qc <- mask_keep_partial(map, qc)
-    rangemap_qc <- raster::merge(rangemap_qc, rast_qc, overlap = TRUE)
+    rangemap_qc <- raster::mask(rangemap_qc, rast_qc)
+    rangemap_qc <- raster::crop(rangemap_qc, rast_qc, snap = "out")
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
