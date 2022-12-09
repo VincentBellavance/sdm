@@ -18,10 +18,8 @@ source("R/find_threshold.R")
 source("R/mask_keep_partial.R")
 source("R/path.R")
 
-org <- raster::raster("data/rast.gri")
 qc <- readRDS(paste0("data/",zone,"/qc_spacePoly.rds"))
-rast_qc <- mask_keep_partial(org, qc)
-values(rast_qc)[values(rast_qc) == 1] <- 0
+rast_qc <- raster::raster("data/quebec/rast_qc.gri")
 
 # Import spatial opbjects for the species
 study_extent <- readRDS(paste0(path_sp(species, output_dir, zone = zone)$spat, "/study_extent.rds"))
