@@ -20,6 +20,7 @@ year_start <- as.integer(args[7])
 year_end <- as.integer(args[8])
 time_window <- as.integer(args[9])
 source("R/path.R")
+source("R/mask_keep_partial.R")
 q <- readRDS(paste0("data/",zone,"/spacePoly.rds"))
 obs <- readRDS(path_sp(species, obs_dir = obs_dir)$obs)
 dist_buffer <- as.integer(args[3])
@@ -45,18 +46,19 @@ j = 1
 while(pres_thresh == FALSE) {
   pres_thresh <- filt_years[j]
   if(!pres_thresh) {
-    obs <- obs[obs$year_obs != all_years[j],]
+    obs <- obs[obs$year_obs != ((year_start):(year_end))[j],]
   }
   j <- j+1
-  if(j > length(all_years)) break
+  if(j > length(filt_years)) break
 }
 
+#TODO: Pas certain du fonctionnement ici, revoir, quoi que pas urgent puisqu'il ne devrait pas y avoir beaucoup d'espèce qui n'ont pas 30 observations en 2018....
 pres_thresh <- FALSE
 j = length((year_start+2):(year_end-2))
 while(pres_thresh == FALSE) {
   pres_thresh <- filt_years[j]
   if(!pres_thresh) {
-    obs <- obs[obs$year_obs != all_years[j],]
+    obs <- obs[obs$year_obs != ((year_start):(year_end))[j],]
   }
   j <- j-1
   if(j < 0) break
