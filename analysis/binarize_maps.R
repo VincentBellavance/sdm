@@ -120,6 +120,7 @@ for(i in 1:length(names(binary_maps))) {
                                      rast_qc,
                                      getCover = TRUE)
     rangemap_qc[rangemap_qc > 0] <- 1
+    rangemap_qc <- mask_keep_partial(rangemap_qc, qc)
 
     cat("Hull done", "\n")
 
@@ -136,8 +137,7 @@ for(i in 1:length(names(binary_maps))) {
 
     # If there is not enough points to make a range polygon
 
-    rangemap_qc <- raster::mask(map, rast_qc)
-    rangemap_qc <- raster::crop(rangemap_qc, rast_qc, snap = "out")
+    rangemap_qc <- mask_keep_partial(map, qc)
 
     if(exists("sdms_range")) {
       sdms_range <- raster::stack(sdms_range, rangemap_qc)
