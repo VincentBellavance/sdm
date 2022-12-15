@@ -4,7 +4,9 @@
 library(raster)
 args = commandArgs(trailingOnly=TRUE)
 i = as.integer(args[1])
-subset_sp <- read.table("data/species_null.txt", sep = " ")
+nsampl <- as.integer(args[2])
+sp <- read.table("data/species_vect.txt", sep = " ")
+subset_sp <- sp[,sample(length(sp), nsampl)]
 
 # Import observations table of all species from the subset
 obs_sp <- lapply(subset_sp, function(x) {
