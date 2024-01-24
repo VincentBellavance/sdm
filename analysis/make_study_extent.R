@@ -86,7 +86,7 @@ if(nrow(obs) > 0 & length(unique(obs$year_obs)) >= 5) {
   study_extent <- terra::intersect(terra::vect(study_extent), terra::vect(q))
   obs <- terra::intersect(terra::vect(obs), study_extent)
   obs <- as(obs, "Spatial")
-  study_extent <- as(study_extent, "Spatial")
+  study_extent <- as(sf::st_as_sf(study_extent), "Spatial")
   
   # Make mesh
   pedge <- as.numeric(args[4])

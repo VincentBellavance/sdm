@@ -43,6 +43,7 @@ binary_maps <- lapply(1:length(names(maps025)), function(x) {
   return(sdm)
 })
 binary_maps <- do.call(raster::stack, binary_maps)
+names(binary_maps) <- attributes(obs_all)$years_mod
 binary_maps_final <- mask_keep_partial(binary_maps, qc)
 binary_maps_final <- raster::merge(binary_maps_final, rast_qc, overlap = FALSE)
 names(binary_maps_final) <- attributes(obs_all)$years_mod
@@ -51,7 +52,9 @@ names(binary_maps_final) <- attributes(obs_all)$years_mod
 raster::writeRaster(binary_maps_final, 
                     paste0(path_sp(species, output_dir, zone = zone)$maps,"/maps_occ"),
                     overwrite = TRUE)
-
+raster::writeRaster(binary_maps,
+                    paste0(path_sp(species, output_dir, zone = zone)$maps,"/maps_occ_all"),
+                    overwrite = TRUE)
 
 
 #---------- MAKE MAPS OF SPECIES RANGE ----------#

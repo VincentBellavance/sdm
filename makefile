@@ -13,16 +13,16 @@ make_maps=analysis/make_maps.R
 make_binary_maps=analysis/binarize_maps.R
 
 ## Occurrences
-obs_dir=$(obs_dir)
+obs_dir=$(obs_folder)
 
 # Output dirs
-output_spatial=$(addsuffix $(zone), $(addprefix $(output_dir), /spatial/))
-output_models=$(addsuffix $(zone), $(addprefix $(output_dir), /models/))
-output_maps=$(addsuffix $(zone), $(addprefix $(output_dir), /maps/))
-output_stack=$(addsuffix $(zone), $(addprefix $(output_dir), /stack/))
-output_log=$(addsuffix $(zone), $(addprefix $(output_dir), /log/))
-output_out=$(addsuffix $(zone), $(addprefix $(output_dir), /out/))
-output_bdi=$(addsuffix $(zone), $(addprefix $(output_dir), /bdi/))
+output_spatial=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /spatial/)))
+output_models=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /models/)))
+output_maps=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /maps/)))
+output_stack=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /stack/)))
+output_log=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /log/)))
+output_out=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /out/)))
+output_bdi=$(addsuffix /, $(addsuffix $(zone), $(addprefix $(output_dir), /bdi/)))
 
 ## Species specific spatial objects
 study_extent=$(addsuffix /study_extent.rds, $(addprefix $(output_spatial), $(species)))
@@ -68,7 +68,7 @@ models: $(sdms)
 
 # Make spatial object necessary for the models
 $(study_extent) $(mesh) $(rast) $(filtered_obs): $(make_study_extent)
-	@Rscript $< $(species) $(zone) $(spat_buffer) $(pedge) $(obs_dir) $(output_dir) $(year_start) $(year_end) $(time_window)
+	@Rscript $< $(species) $(zone) $(spat_buffer) $(pedge) $(obs_dir) $(output_dir) $(year_start) $(year_end) $(window)
 
 spatial: $(study_extent) $(mesh) $(rast) $(filtered_obs)
 
